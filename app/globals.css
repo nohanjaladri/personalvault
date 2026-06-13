@@ -145,3 +145,21 @@
   from { transform: translateX(120px); opacity: 0; }
   to   { transform: translateX(0);     opacity: 1; }
 }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes spinner-neon {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-spinner-neon {
+  animation: spinner-neon 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

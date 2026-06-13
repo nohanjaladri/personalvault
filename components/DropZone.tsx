@@ -37,11 +37,13 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
   const [isDragging, setIsDragging] = useState(false)
   const [progress, setProgress] = useState(0)
   const [uploading, setUploading] = useState(false)
+  const [currentUploadingFile, setCurrentUploadingFile] = useState<string | null>(null)
+  const [currentFileProgress, setCurrentFileProgress] = useState(0)
   const { showToast } = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (file: File, onProgress: (pct: number) => void) => {
     // Jalur folder relatif jika ada (menjaga struktur folder)
     const displayName = file.webkitRelativePath || file.name
 
@@ -65,26 +67,58 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
     let finalR2Key = r2Key
 
     if (isGDrive) {
-      // Unggah ke Google Drive via server stream
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': file.type || 'application/octet-stream',
-          'X-File-Name': encodeURIComponent(displayName)
-        },
-        body: file,
+      // Unggah ke Google Drive via server stream dengan XMLHttpRequest untuk progress akurat
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('POST', uploadUrl)
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+        xhr.setRequestHeader('X-File-Name', encodeURIComponent(displayName))
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            onProgress(Math.round((e.loaded / e.total) * 100))
+          }
+        }
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const uploadData = JSON.parse(xhr.responseText)
+              finalDriveFileId = uploadData.driveFileId
+              resolve()
+            } catch {
+              resolve()
+            }
+          } else {
+            reject(new Error(`Gagal mengunggah file ${displayName} ke Google Drive`))
+          }
+        }
+        xhr.onerror = () => reject(new Error(`Koneksi error saat mengunggah ${displayName}`))
+        xhr.send(file)
       })
-      if (!uploadRes.ok) throw new Error(`Gagal mengunggah file ${displayName} ke Google Drive`)
-      const uploadData = await uploadRes.json()
-      finalDriveFileId = uploadData.driveFileId
     } else {
-      // Unggah ke Supabase Storage (S3) biasa
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type || 'application/octet-stream' },
-        body: file,
+      // Unggah ke Supabase Storage (S3) biasa dengan XMLHttpRequest untuk progress akurat
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('PUT', uploadUrl)
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            onProgress(Math.round((e.loaded / e.total) * 100))
+          }
+        }
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve()
+          } else {
+            reject(new Error(`Gagal mengunggah file ${displayName} ke storage`))
+          }
+        }
+        xhr.onerror = () => reject(new Error(`Koneksi error saat mengunggah ${displayName}`))
+        xhr.send(file)
       })
-      if (!uploadRes.ok) throw new Error(`Gagal mengunggah file ${displayName} ke storage`)
     }
 
     const metaRes = await fetch('/api/files', {
@@ -109,11 +143,16 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
   const handleStartUpload = async () => {
     if (selectedFiles.length === 0) return
     setUploading(true)
-    setProgress(5)
+    setProgress(0)
 
     try {
       for (let i = 0; i < selectedFiles.length; i++) {
-        await uploadFile(selectedFiles[i])
+        const file = selectedFiles[i]
+        setCurrentUploadingFile(file.webkitRelativePath || file.name)
+        setCurrentFileProgress(0)
+        await uploadFile(file, (pct) => {
+          setCurrentFileProgress(pct)
+        })
         setProgress(Math.round(((i + 1) / selectedFiles.length) * 100))
       }
       showToast(`Berhasil mengunggah ${selectedFiles.length} file ke brankas! ✨`)
@@ -125,6 +164,8 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
     } finally {
       setUploading(false)
       setProgress(0)
+      setCurrentUploadingFile(null)
+      setCurrentFileProgress(0)
     }
   }
 
@@ -318,16 +359,36 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
 
           {/* Progress Bar */}
           {uploading && (
-            <div className="space-y-1">
-              <div className="flex justify-between text-[10px] text-slate-400">
-                <span>Mengunggah file antrean...</span>
-                <span>{progress}%</span>
-              </div>
-              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
+            <div className="space-y-3 bg-white/[0.02] border border-white/5 p-4 rounded-xl">
+              {currentUploadingFile && (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[11px] text-slate-300">
+                    <span className="truncate font-medium flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-ping"></span>
+                      Mengunggah: <strong className="text-violet-400 font-normal">{currentUploadingFile}</strong>
+                    </span>
+                    <span className="font-semibold text-violet-400">{currentFileProgress}%</span>
+                  </div>
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden relative">
+                    <div
+                      className="h-full bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full transition-all duration-150 ease-out shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+                      style={{ width: `${currentFileProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-1.5 pt-1.5 border-t border-white/5">
+                <div className="flex justify-between text-[10px] text-slate-400">
+                  <span>Total Progres Antrean</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-slate-400 to-slate-200 rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
               </div>
             </div>
           )}

@@ -61,20 +61,31 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
       }
 
       const { uploadUrl, r2Key } = await urlRes.json()
-      setProgress(50)
+      setProgress(30)
 
-      // 2. Upload file to Supabase Storage
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
+      // 2. Upload file to Supabase Storage with XHR for accurate progress tracking
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('PUT', uploadUrl)
+        xhr.setRequestHeader('Content-Type', file.type)
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 50) + 30
+            setProgress(pct)
+          }
+        }
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve()
+          } else {
+            reject(new Error('Gagal mengunggah'))
+          }
+        }
+        xhr.onerror = () => reject(new Error('Koneksi bermasalah'))
+        xhr.send(file)
       })
-
-      if (!uploadRes.ok) {
-        showToast('Gagal mengunggah file ke storage ❌')
-        setUploading(false)
-        return
-      }
 
       setProgress(80)
 

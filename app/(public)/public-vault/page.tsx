@@ -202,8 +202,25 @@ export default function PublicVaultPage() {
             </h2>
 
             {loading ? (
-              <div className="flex-1 flex items-center justify-center text-sm text-slate-500 animate-pulse">
-                Memuat berkas publik...
+              <div className="flex-1 space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div 
+                    key={i}
+                    className="p-3.5 rounded-xl border border-white/5 bg-white/[0.01] flex items-center justify-between relative overflow-hidden"
+                  >
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      <div className="w-[200%] h-full -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.03] to-transparent" />
+                    </div>
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-8 h-8 rounded-lg bg-white/[0.03]" />
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="h-4 w-1/3 bg-white/5 rounded-md" />
+                        <div className="h-3 w-1/6 bg-white/[0.03] rounded-md mt-1.5" />
+                      </div>
+                    </div>
+                    <div className="h-4 w-12 bg-white/[0.03] rounded-md ml-4" />
+                  </div>
+                ))}
               </div>
             ) : files.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-2 text-slate-500">

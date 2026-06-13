@@ -134,19 +134,31 @@ export default function DashboardPage() {
       }
 
       const { uploadUrl, r2Key, fileName: cleanName } = await urlRes.json()
-      setNoteProgress(60)
+      setNoteProgress(40)
 
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
+      // Upload file content to Supabase Storage with XHR for accurate progress
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('PUT', uploadUrl)
+        xhr.setRequestHeader('Content-Type', file.type)
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 45) + 40
+            setNoteProgress(pct)
+          }
+        }
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve()
+          } else {
+            reject(new Error('Gagal mengunggah catatan'))
+          }
+        }
+        xhr.onerror = () => reject(new Error('Koneksi bermasalah'))
+        xhr.send(file)
       })
-
-      if (!uploadRes.ok) {
-        showToast('Gagal mengunggah isi catatan ❌')
-        setNoteUploading(false)
-        return
-      }
 
       setNoteProgress(85)
       const metaRes = await fetch('/api/files', {
@@ -397,7 +409,33 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-slate-500 text-sm animate-pulse">Memuat berkas...</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="bg-[rgba(10,8,22,0.45)] border border-white/[0.08] rounded-2xl overflow-hidden flex flex-col h-[260px] relative">
+                  {/* Shimmer overlay */}
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="w-[200%] h-full -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
+                  </div>
+                  <div className="w-full aspect-[4/3] bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-white/[0.03]" />
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="h-4 w-3/4 bg-white/5 rounded-md" />
+                      <div className="h-3 w-1/4 bg-white/[0.03] rounded-md mt-2" />
+                    </div>
+                    <div className="flex items-center justify-between border-t border-white/[0.05] pt-3">
+                      <div className="h-4 w-10 bg-white/[0.03] rounded-md" />
+                      <div className="flex gap-1.5">
+                        <div className="w-7 h-7 bg-white/[0.03] rounded-lg border border-white/5" />
+                        <div className="w-7 h-7 bg-white/[0.03] rounded-lg border border-white/5" />
+                        <div className="w-7 h-7 bg-white/[0.03] rounded-lg border border-white/5" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <FileGrid files={files} onRefresh={fetchFiles} />
           )}

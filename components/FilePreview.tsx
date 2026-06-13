@@ -16,7 +16,19 @@ export default function FilePreview({ r2Key, driveFileId, mimeType, fileName }: 
       .then(d => setUrl(d.url))
   }, [r2Key, driveFileId])
 
-  if (!url) return <div className="h-64 flex items-center justify-center text-slate-500 text-sm">Memuat preview...</div>
+  if (!url) {
+    return (
+      <div className="h-64 flex flex-col items-center justify-center space-y-4">
+        <div className="relative w-12 h-12">
+          {/* Inner glass layer */}
+          <div className="absolute inset-0 rounded-full border-2 border-white/5" />
+          {/* Neon spinning arc */}
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-violet-500 border-r-pink-500 animate-spinner-neon shadow-[0_0_15px_rgba(139,92,246,0.3)]" />
+        </div>
+        <p className="text-xs text-slate-400 font-medium animate-pulse">Menyiapkan preview...</p>
+      </div>
+    )
+  }
 
   if (mimeType.startsWith('image/')) {
     return <img src={url} alt={fileName} className="max-w-full max-h-[70vh] rounded-xl mx-auto object-contain" />
@@ -44,10 +56,33 @@ export default function FilePreview({ r2Key, driveFileId, mimeType, fileName }: 
 
 function TextPreview({ url }: { url: string }) {
   const [text, setText] = useState('')
-  useEffect(() => { fetch(url).then(r => r.text()).then(setText) }, [url])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => { 
+    setLoading(true)
+    fetch(url)
+      .then(r => r.text())
+      .then(t => {
+        setText(t)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [url])
+
+  if (loading) {
+    return (
+      <div className="bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col items-center justify-center space-y-3 h-48">
+        <div className="relative w-8 h-8">
+          <div className="absolute inset-0 rounded-full border border-white/5" />
+          <div className="absolute inset-0 rounded-full border border-transparent border-t-violet-500 border-r-pink-500 animate-spinner-neon" />
+        </div>
+        <span className="text-xs text-slate-500 font-medium">Membaca konten teks...</span>
+      </div>
+    )
+  }
+
   return (
-    <pre className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-slate-300 overflow-auto max-h-[70vh] whitespace-pre-wrap break-all">
-      {text || 'Memuat...'}
+    <pre className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-slate-300 overflow-auto max-h-[70vh] whitespace-pre-wrap break-all font-mono">
+      {text}
     </pre>
   )
 }
