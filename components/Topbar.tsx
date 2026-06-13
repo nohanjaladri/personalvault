@@ -9,6 +9,7 @@ export default function Topbar({ email }: { email: string }) {
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [username, setUsername] = useState('')
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const router = useRouter()
@@ -43,6 +44,7 @@ export default function Topbar({ email }: { email: string }) {
   }
 
   const handleLogout = async () => {
+    setIsLoggingOut(true)
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
@@ -53,7 +55,17 @@ export default function Topbar({ email }: { email: string }) {
   }
 
   return (
-    <header className="h-16 bg-[rgba(10,8,22,0.55)] backdrop-blur-2xl border-b border-white/[0.06] flex items-center gap-3 px-4 md:px-7 shrink-0 relative z-40">
+    <>
+      {isLoggingOut && (
+        <div className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-center space-y-4">
+          <div className="relative w-12 h-12">
+            <div className="absolute inset-0 rounded-full border-2 border-white/5" />
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-violet-500 border-r-pink-500 animate-spinner-neon" />
+          </div>
+          <span className="text-xs text-slate-400 font-medium animate-pulse">Keluar dari sesi aman...</span>
+        </div>
+      )}
+      <header className="h-16 bg-[rgba(10,8,22,0.55)] backdrop-blur-2xl border-b border-white/[0.06] flex items-center gap-3 px-4 md:px-7 shrink-0 relative z-40">
       {/* Mobile Menu Button (Hamburger) */}
       <button
         onClick={() => window.dispatchEvent(new Event('toggle-sidebar'))}
@@ -140,5 +152,6 @@ export default function Topbar({ email }: { email: string }) {
         onUploadComplete={handleUploadComplete}
       />
     </header>
+    </>
   )
 }

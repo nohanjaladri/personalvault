@@ -58,7 +58,20 @@ export default function LoginPage() {
             <label className="text-xs font-medium text-slate-400 block mb-1.5">Password</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="input-field" placeholder="••••••••" />
           </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full py-2.5 text-sm font-semibold">{loading ? 'Masuk...' : 'Masuk'}</button>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 rounded-full border border-white/20 border-t-white animate-spin" />
+                <span>Masuk...</span>
+              </>
+            ) : (
+              'Masuk'
+            )}
+          </button>
         </form>
 
         <div className="flex flex-col gap-3 text-center">

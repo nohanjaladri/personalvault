@@ -74,7 +74,20 @@ export default function RegisterPage() {
             <label className="text-xs font-medium text-slate-400 block mb-1.5">Konfirmasi Password</label>
             <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required className="input-field" placeholder="Ulangi password" />
           </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Mendaftar...' : 'Daftar'}</button>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 rounded-full border border-white/20 border-t-white animate-spin" />
+                <span>Mendaftar...</span>
+              </>
+            ) : (
+              'Daftar'
+            )}
+          </button>
         </form>
         <p className="text-center text-slate-500 text-sm mt-4">
           Sudah punya akun? <Link href="/login" className="text-violet-400 hover:text-violet-300">Masuk</Link>

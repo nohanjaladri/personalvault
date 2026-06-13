@@ -64,8 +64,19 @@ export default function VerifyPage() {
               placeholder="000000" autoFocus
             />
           </div>
-          <button type="submit" disabled={loading || code.length !== 6 || cooldown > 0} className="btn-primary w-full">
-            {loading ? 'Memverifikasi...' : 'Masuk ke Vault'}
+          <button 
+            type="submit" 
+            disabled={loading || code.length !== 6 || cooldown > 0} 
+            className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 rounded-full border border-white/20 border-t-white animate-spin" />
+                <span>Memverifikasi...</span>
+              </>
+            ) : (
+              'Masuk ke Vault'
+            )}
           </button>
         </form>
       </div>

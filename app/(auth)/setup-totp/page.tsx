@@ -113,8 +113,19 @@ export default function SetupTotpPage() {
                 placeholder="000000"
               />
             </div>
-            <button type="submit" disabled={loading || code.length !== 6} className="btn-primary w-full">
-              {loading ? 'Memverifikasi...' : 'Konfirmasi & Lanjut'}
+             <button 
+              type="submit" 
+              disabled={loading || code.length !== 6} 
+              className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 rounded-full border border-white/20 border-t-white animate-spin" />
+                  <span>Memverifikasi...</span>
+                </>
+              ) : (
+                'Konfirmasi & Lanjut'
+              )}
             </button>
           </form>
         </div>
