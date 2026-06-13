@@ -42,6 +42,7 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
   const { showToast } = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
+  const activeXhrRef = useRef<XMLHttpRequest | null>(null)
 
   const uploadFile = async (file: File, onProgress: (pct: number) => void) => {
     // Jalur folder relatif jika ada (menjaga struktur folder)
@@ -70,6 +71,7 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
       // Unggah ke Google Drive via server stream dengan XMLHttpRequest untuk progress akurat
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
+        activeXhrRef.current = xhr
         xhr.open('POST', uploadUrl)
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
         xhr.setRequestHeader('X-File-Name', encodeURIComponent(displayName))
@@ -81,6 +83,7 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
         }
         
         xhr.onload = () => {
+          activeXhrRef.current = null
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const uploadData = JSON.parse(xhr.responseText)
@@ -93,13 +96,21 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
             reject(new Error(`Gagal mengunggah file ${displayName} ke Google Drive`))
           }
         }
-        xhr.onerror = () => reject(new Error(`Koneksi error saat mengunggah ${displayName}`))
+        xhr.onerror = () => {
+          activeXhrRef.current = null
+          reject(new Error(`Koneksi error saat mengunggah ${displayName}`))
+        }
+        xhr.onabort = () => {
+          activeXhrRef.current = null
+          reject(new Error('Unggahan dibatalkan oleh pengguna'))
+        }
         xhr.send(file)
       })
     } else {
       // Unggah ke Supabase Storage (S3) biasa dengan XMLHttpRequest untuk progress akurat
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
+        activeXhrRef.current = xhr
         xhr.open('PUT', uploadUrl)
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
         
@@ -110,13 +121,21 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
         }
         
         xhr.onload = () => {
+          activeXhrRef.current = null
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve()
           } else {
             reject(new Error(`Gagal mengunggah file ${displayName} ke storage`))
           }
         }
-        xhr.onerror = () => reject(new Error(`Koneksi error saat mengunggah ${displayName}`))
+        xhr.onerror = () => {
+          activeXhrRef.current = null
+          reject(new Error(`Koneksi error saat mengunggah ${displayName}`))
+        }
+        xhr.onabort = () => {
+          activeXhrRef.current = null
+          reject(new Error('Unggahan dibatalkan oleh pengguna'))
+        }
         xhr.send(file)
       })
     }
@@ -160,12 +179,17 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
       onUploadComplete()
     } catch (err: any) {
       console.error(err)
-      showToast(err.message || 'Terjadi kesalahan saat mengunggah ❌')
+      if (err.message === 'Unggahan dibatalkan oleh pengguna') {
+        showToast('Unggahan dibatalkan ⚠️')
+      } else {
+        showToast(err.message || 'Terjadi kesalahan saat mengunggah ❌')
+      }
     } finally {
       setUploading(false)
       setProgress(0)
       setCurrentUploadingFile(null)
       setCurrentFileProgress(0)
+      activeXhrRef.current = null
     }
   }
 
@@ -362,12 +386,21 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
             <div className="space-y-3 bg-white/[0.02] border border-white/5 p-4 rounded-xl">
               {currentUploadingFile && (
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-[11px] text-slate-300">
-                    <span className="truncate font-medium flex items-center gap-1.5">
+                  <div className="flex justify-between items-center text-[11px] text-slate-300">
+                    <span className="truncate font-medium flex items-center gap-1.5 max-w-[70%]">
                       <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-ping"></span>
                       Mengunggah: <strong className="text-violet-400 font-normal">{currentUploadingFile}</strong>
                     </span>
-                    <span className="font-semibold text-violet-400">{currentFileProgress}%</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-violet-400">{currentFileProgress}%</span>
+                      <button
+                        onClick={() => activeXhrRef.current?.abort()}
+                        className="px-2 py-0.5 text-[9px] font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-md transition-colors cursor-pointer"
+                        title="Batalkan unggahan"
+                      >
+                        Batal
+                      </button>
+                    </div>
                   </div>
                   <div className="h-1.5 bg-white/5 rounded-full overflow-hidden relative">
                     <div
