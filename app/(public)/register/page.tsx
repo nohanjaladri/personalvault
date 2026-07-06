@@ -45,7 +45,7 @@ export default function RegisterPage() {
       }
     }
     
-    router.push('/setup-totp'); router.refresh()
+    router.push('/dashboard'); router.refresh()
   }
 
   return (

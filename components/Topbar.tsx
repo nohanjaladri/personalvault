@@ -99,6 +99,12 @@ export default function Topbar({ email }: { email: string }) {
         >
           📁 Upload Folder
         </button>
+        <button
+          onClick={() => setIsNoteModalOpen(true)}
+          className="hidden md:flex px-3.5 py-2 text-xs font-semibold rounded-xl bg-pink-600/15 hover:bg-pink-600/30 text-pink-400 border border-pink-500/20 hover:border-pink-500/40 transition-all items-center gap-1.5 cursor-pointer shadow-md"
+        >
+          📝 Tulis Catatan
+        </button>
  
         {/* Dropdown Profil */}
         <div className="relative" ref={dropdownRef}>

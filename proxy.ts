@@ -36,32 +36,9 @@ export async function proxy(request: NextRequest) {
   // Authenticated on public route: redirect based on state
   if (isPublicRoute) {
     if (path === '/login' || path === '/register') {
-      const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-      const dest = data?.nextLevel === 'aal2' ? '/verify' : '/dashboard'
-      return NextResponse.redirect(new URL(dest, request.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
     return response
-  }
-
-  // Check TOTP enrollment
-  const { data: factors } = await supabase.auth.mfa.listFactors()
-  const hasTotp = (factors?.totp?.length ?? 0) > 0
-
-  if (!hasTotp) {
-    return path === '/setup-totp'
-      ? response
-      : NextResponse.redirect(new URL('/setup-totp', request.url))
-  }
-
-  // Allow auth routes (verify) without AAL2
-  if (AUTH.includes(path)) return response
-
-  // Protected routes: require AAL2 (except /dashboard which allows AAL1 upload-only)
-  if (path !== '/dashboard') {
-    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-    if (aal?.currentLevel !== 'aal2') {
-      return NextResponse.redirect(new URL('/verify', request.url))
-    }
   }
 
   return response

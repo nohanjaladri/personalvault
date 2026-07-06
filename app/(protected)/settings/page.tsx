@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatFileSize } from '@/lib/utils/format'
 import { useToast } from '@/components/Toast'
-import ReEnrollButton from './ReEnrollButton'
 
 type FileRow = { size: number }
 type Profile = { username: string; email: string }
@@ -297,19 +296,6 @@ export default function SettingsPage() {
             </form>
           </div>
 
-          {/* MFA 2FA Settings Card */}
-          <div className="glass-card p-6 space-y-4 border border-white/10 shadow-xl">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Keamanan Tambahan</h3>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-200">Google Authenticator (TOTP)</p>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                  Lakukan pengaturan ulang (*Re-enroll*) jika Anda mengganti perangkat HP baru atau mereset aplikasi authenticator Anda.
-                </p>
-              </div>
-              <ReEnrollButton />
-            </div>
-          </div>
 
           {/* Google Drive Integration Card */}
           <div className="glass-card p-6 space-y-4 border border-white/10 shadow-xl">
