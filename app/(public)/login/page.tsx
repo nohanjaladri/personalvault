@@ -43,9 +43,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center relative z-10 p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-2xl mx-auto mb-4 shadow-[0_0_24px_rgba(139,92,246,0.5)]">🔐</div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">PersonalVault</h1>
-          <p className="text-slate-500 text-sm mt-1">Masuk ke akun Anda</p>
+          <p className="text-slate-400 text-sm">Masuk ke akun Anda</p>
         </div>
         
         <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4 shadow-xl border border-white/10">

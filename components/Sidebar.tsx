@@ -47,14 +47,7 @@ export default function Sidebar({ usedBytes }: { usedBytes: number }) {
 
       <aside className={`fixed md:static inset-y-0 left-0 w-[240px] md:w-[220px] shrink-0 bg-[rgba(10,8,22,0.95)] md:bg-[rgba(10,8,22,0.65)] backdrop-blur-2xl border-r border-white/[0.07] flex flex-col gap-1.5 py-6 px-4 z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="flex items-center justify-between px-2 pb-5 border-b border-white/[0.07] mb-1.5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-lg shadow-[0_0_18px_rgba(139,92,246,0.55)]">
-              🔐
-            </div>
-            <span className="font-bold text-base bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
-              PersonalVault
-            </span>
-          </div>
+
           {/* Tombol Tutup Mobile */}
           <button 
             onClick={() => setIsOpen(false)}

@@ -303,7 +303,7 @@ export default function PublicVaultPage() {
 
       {/* Footer */}
       <footer className="h-14 border-t border-white/[0.06] flex items-center justify-center text-xs text-slate-600 relative z-10">
-        © {new Date().getFullYear()} PersonalVault Public. Tempat berbagi teks anonim yang aman.
+        © {new Date().getFullYear()} Public Vault. Tempat berbagi teks anonim yang aman.
       </footer>
     </div>
   )

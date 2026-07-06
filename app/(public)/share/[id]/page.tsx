@@ -62,10 +62,7 @@ export default async function PublicSharePage({ params }: Props) {
       {/* Header */}
       <header className="h-16 border-b border-white/[0.06] flex items-center px-8 justify-between relative z-10">
         <Link href="/login" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-          <span className="text-xl">🔒</span>
-          <span className="font-bold tracking-tight bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
-            PersonalVault
-          </span>
+          <span className="text-xs text-slate-400">← Kembali</span>
         </Link>
         <Link 
           href="/login" 
@@ -152,7 +149,7 @@ export default async function PublicSharePage({ params }: Props) {
 
       {/* Footer */}
       <footer className="h-14 border-t border-white/[0.06] flex items-center justify-center text-xs text-slate-600 relative z-10">
-        © {new Date().getFullYear()} PersonalVault. Penyimpanan pribadi terenkripsi dan aman.
+        © {new Date().getFullYear()} Penyimpanan pribadi terenkripsi dan aman.
       </footer>
     </div>
   )

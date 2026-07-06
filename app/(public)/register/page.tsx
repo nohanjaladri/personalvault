@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isRegistered, setIsRegistered] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,16 +46,44 @@ export default function RegisterPage() {
       }
     }
     
-    router.push('/dashboard'); router.refresh()
+    setIsRegistered(true)
+    setLoading(false)
+  }
+
+  if (isRegistered) {
+    return (
+      <div className="min-h-screen flex items-center justify-center relative z-10 p-4">
+        <div className="w-full max-w-sm text-center space-y-6">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-2xl mx-auto mb-4 shadow-[0_0_24px_rgba(16,185,129,0.5)]">
+            ✉️
+          </div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            Konfirmasi Email Anda
+          </h1>
+          <div className="glass-card p-6 space-y-4 border border-white/10 shadow-xl text-left">
+            <p className="text-sm text-slate-300 leading-relaxed">
+              Pendaftaran berhasil! Kami telah mengirimkan tautan konfirmasi ke email <strong>{email}</strong>.
+            </p>
+            <p className="text-xs text-slate-400 leading-relaxed bg-white/5 p-3 rounded-lg border border-white/5">
+              ⚠️ Silakan periksa folder <strong>Inbox</strong> atau <strong>Spam/Junk</strong> email Anda, lalu klik tautan verifikasi sebelum mencoba masuk.
+            </p>
+            <Link
+              href="/login"
+              className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer mt-4"
+            >
+              Kembali ke Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center relative z-10 p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-2xl mx-auto mb-4 shadow-[0_0_24px_rgba(139,92,246,0.5)]">🔐</div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">PersonalVault</h1>
-          <p className="text-slate-500 text-sm mt-1">Buat akun baru</p>
+          <p className="text-slate-400 text-sm">Buat akun baru</p>
         </div>
         <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
           {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</div>}
