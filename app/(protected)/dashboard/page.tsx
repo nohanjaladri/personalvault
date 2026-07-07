@@ -207,27 +207,27 @@ export default function DashboardPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-white border border-[#e5e5e5] rounded overflow-hidden flex flex-col relative">
+              <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded overflow-hidden flex flex-col relative">
                 {/* Shimmer overlay */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                  <div className="w-[200%] h-full -translate-x-full animate-shimmer bg-[linear-gradient(90deg,transparent,rgba(0,0,0,0.03),transparent)]" />
+                  <div className="w-[200%] h-full -translate-x-full animate-shimmer bg-[linear-gradient(90deg,transparent,rgba(128,128,128,0.05),transparent)]" />
                 </div>
                 {/* Thumbnail area */}
-                <div className="w-full aspect-[4/3] bg-[#f5f5f5] border-b border-[#f0f0f0] flex items-center justify-center">
-                  <div className="w-10 h-10 rounded bg-[#ebebeb]" />
+                <div className="w-full aspect-[4/3] bg-[var(--surface-2)] border-b border-[var(--border)] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded bg-[var(--surface-3)]" />
                 </div>
                 {/* Content area */}
                 <div className="p-4 flex-1 flex flex-col justify-between gap-4">
                   <div className="space-y-2">
-                    <div className="h-3.5 w-3/4 bg-[#f5f5f5] rounded" />
-                    <div className="h-2.5 w-1/3 bg-[#f0f0f0] rounded" />
+                    <div className="h-3.5 w-3/4 bg-[var(--surface-2)] rounded" />
+                    <div className="h-2.5 w-1/3 bg-[var(--surface-3)] rounded" />
                   </div>
-                  <div className="flex items-center justify-between border-t border-[#f5f5f5] pt-3">
-                    <div className="h-3 w-10 bg-[#f5f5f5] rounded" />
+                  <div className="flex items-center justify-between border-t border-[var(--border)] pt-3">
+                    <div className="h-3 w-10 bg-[var(--surface-2)] rounded" />
                     <div className="flex gap-1">
-                      <div className="w-7 h-7 bg-[#f5f5f5] rounded border border-[#ebebeb]" />
-                      <div className="w-7 h-7 bg-[#f5f5f5] rounded border border-[#ebebeb]" />
-                      <div className="w-7 h-7 bg-[#f5f5f5] rounded border border-[#ebebeb]" />
+                      <div className="w-7 h-7 bg-[var(--surface-2)] rounded border border-[var(--border)]" />
+                      <div className="w-7 h-7 bg-[var(--surface-2)] rounded border border-[var(--border)]" />
+                      <div className="w-7 h-7 bg-[var(--surface-2)] rounded border border-[var(--border)]" />
                     </div>
                   </div>
                 </div>

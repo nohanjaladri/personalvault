@@ -67,14 +67,14 @@ function ImageCardPreview({ r2Key, driveFileId, name }: { r2Key?: string; driveF
 
   if (!url) {
     return (
-      <div ref={containerRef} className="w-full aspect-[4/3] bg-[#f5f5f5] border-b border-[#e5e5e5] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#d4d4d4] border-t-[#111111] rounded-full animate-spinner-neon" />
+      <div ref={containerRef} className="w-full aspect-[4/3] bg-[var(--surface-2)] border-b border-[var(--border)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[var(--border-2)] border-t-[var(--text-1)] rounded-full animate-spinner-neon" />
       </div>
     )
   }
 
   return (
-    <div ref={containerRef} className="w-full aspect-[4/3] relative overflow-hidden border-b border-[#e5e5e5] bg-[#f5f5f5]">
+    <div ref={containerRef} className="w-full aspect-[4/3] relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface-2)]">
       <img
         src={url}
         alt={name}
@@ -89,9 +89,9 @@ function FileCardPlaceholder({ category }: { category: string }) {
   const emoji = CATEGORY_EMOJI[category as keyof typeof CATEGORY_EMOJI] ?? '□'
 
   return (
-    <div className="w-full aspect-[4/3] bg-[#f5f5f5] border-b border-[#e5e5e5] flex flex-col items-center justify-center gap-2">
-      <span className="text-3xl text-[#a3a3a3]">{emoji}</span>
-      <span className="text-[10px] uppercase tracking-widest font-semibold text-[#a3a3a3]">{category}</span>
+    <div className="w-full aspect-[4/3] bg-[var(--surface-2)] border-b border-[var(--border)] flex flex-col items-center justify-center gap-2">
+      <span className="text-3xl text-[var(--text-4)]">{emoji}</span>
+      <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--text-4)]">{category}</span>
     </div>
   )
 }
@@ -166,7 +166,7 @@ export default function FileGrid({ files, onRefresh }: { files: FileRow[]; onRef
       {files.map(f => (
         <div
           key={f.id}
-          className="group relative bg-white border border-[#e5e5e5] hover:border-[#111111] rounded transition-all duration-150 overflow-hidden flex flex-col hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+          className="group relative bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--text-1)] rounded transition-all duration-150 overflow-hidden flex flex-col hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
         >
           <Link href={`/file/${f.id}`} className="block w-full">
             {f.category === 'photo' ? (
@@ -178,11 +178,11 @@ export default function FileGrid({ files, onRefresh }: { files: FileRow[]; onRef
 
           <div className="p-4 flex-1 flex flex-col justify-between">
             <Link href={`/file/${f.id}`} className="block min-w-0 mb-3">
-              <h4 className="text-sm font-semibold text-[#111111] truncate" title={f.name}>
+              <h4 className="text-sm font-semibold text-[var(--text-1)] truncate" title={f.name}>
                 {f.name}
               </h4>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] text-[#a3a3a3]">{formatDate(f.created_at)}</span>
+                <span className="text-[10px] text-[var(--text-4)]">{formatDate(f.created_at)}</span>
                 {f.is_public && (
                   <span className="badge badge-red">
                     Publik
@@ -191,27 +191,27 @@ export default function FileGrid({ files, onRefresh }: { files: FileRow[]; onRef
               </div>
             </Link>
 
-            <div className="flex items-center justify-between border-t border-[#f5f5f5] pt-3">
-              <span className="text-xs text-[#737373] font-medium">{formatFileSize(f.size)}</span>
+            <div className="flex items-center justify-between border-t border-[var(--border)] pt-3">
+              <span className="text-xs text-[var(--text-3)] font-medium">{formatFileSize(f.size)}</span>
 
               <div className="flex items-center gap-1">
                 <button
                   onClick={e => handleShareToggle(e, f.id, f.is_public ?? false, f.name)}
-                  className={`w-7 h-7 rounded border flex items-center justify-center text-[10px] transition-colors cursor-pointer ${f.is_public ? 'bg-[#DC2626] border-[#DC2626] text-white' : 'bg-[#f5f5f5] border-[#e5e5e5] text-[#737373] hover:border-[#111111] hover:text-[#111111]'}`}
+                  className={`w-7 h-7 rounded border flex items-center justify-center text-[10px] transition-colors cursor-pointer ${f.is_public ? 'bg-[#DC2626] border-[#DC2626] text-white' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-3)] hover:border-[var(--text-1)] hover:text-[var(--text-1)]'}`}
                   title={f.is_public ? 'Tautan Berbagi / Matikan Berbagi' : 'Jadikan Publik'}
                 >
                   ⇧
                 </button>
                 <button
                   onClick={e => handleStar(e, f.id, f.is_starred)}
-                  className={`w-7 h-7 rounded border flex items-center justify-center text-[10px] transition-colors cursor-pointer ${f.is_starred ? 'bg-[#111111] border-[#111111] text-white' : 'bg-[#f5f5f5] border-[#e5e5e5] text-[#737373] hover:border-[#111111] hover:text-[#111111]'}`}
+                  className={`w-7 h-7 rounded border flex items-center justify-center text-[10px] transition-colors cursor-pointer ${f.is_starred ? 'bg-[var(--text-1)] border-[var(--text-1)] text-[var(--bg)]' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-3)] hover:border-[var(--text-1)] hover:text-[var(--text-1)]'}`}
                   title={f.is_starred ? 'Hapus bintang' : 'Bintangi'}
                 >
                   ★
                 </button>
                 <button
                   onClick={e => handleDelete(e, f.id, f.name)}
-                  className="w-7 h-7 rounded border bg-[#f5f5f5] border-[#e5e5e5] flex items-center justify-center text-[10px] text-[#737373] hover:bg-[#DC2626] hover:border-[#DC2626] hover:text-white transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded border bg-[var(--surface-2)] border-[var(--border)] flex items-center justify-center text-[10px] text-[var(--text-3)] hover:bg-[#DC2626] hover:border-[#DC2626] hover:text-white transition-colors cursor-pointer"
                   title="Hapus"
                 >
                   ×

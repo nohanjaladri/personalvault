@@ -3,7 +3,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import CreateNoteModal from './CreateNoteModal'
+import { useTheme } from './ThemeProvider'
 
+/* ── Icons ─────────────────────────────────────────────────── */
 const IconSearch = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
     <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4"/>
@@ -40,6 +42,23 @@ const IconNote = () => (
   </svg>
 )
 
+/* ── Sun icon (light mode) ──────────────────────────────────── */
+const IconSun = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <circle cx="7" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.93 2.93l1.06 1.06M10.01 10.01l1.06 1.06M2.93 11.07l1.06-1.06M10.01 3.99l1.06-1.06"
+      stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+)
+
+/* ── Moon icon (dark mode) ──────────────────────────────────── */
+const IconMoon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <path d="M12 8.5A5.5 5.5 0 0 1 5.5 2a5.5 5.5 0 1 0 6.5 6.5Z"
+      stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+  </svg>
+)
+
 export default function Topbar({ email }: { email: string }) {
   const [query, setQuery] = useState('')
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
@@ -47,6 +66,7 @@ export default function Topbar({ email }: { email: string }) {
   const [username, setUsername] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const { theme, toggle } = useTheme()
 
   const router = useRouter()
   const supabase = createClient()
@@ -100,11 +120,17 @@ export default function Topbar({ email }: { email: string }) {
         </div>
       )}
 
-      <header className="h-14 bg-white border-b border-[#e5e5e5] flex items-center gap-3 px-4 md:px-6 shrink-0 relative z-40">
+      <header
+        className="h-14 flex items-center gap-3 px-4 md:px-6 shrink-0 relative z-40 transition-colors duration-200"
+        style={{
+          background: 'var(--surface)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
         {/* Mobile menu toggle */}
         <button
           onClick={() => window.dispatchEvent(new Event('toggle-sidebar'))}
-          className="md:hidden w-8 h-8 rounded flex items-center justify-center text-[#525252] hover:bg-[#f5f5f5] border border-[#e5e5e5] transition-colors cursor-pointer"
+          className="md:hidden theme-toggle"
           title="Buka menu navigasi"
           aria-label="Menu"
         >
@@ -114,9 +140,21 @@ export default function Topbar({ email }: { email: string }) {
         {/* Search */}
         <form
           onSubmit={handleSearch}
-          className="flex-1 max-w-xs md:max-w-sm flex items-center gap-2 bg-[#f5f5f5] border border-[#e5e5e5] rounded px-3 py-2 transition-all focus-within:border-[#111111] focus-within:bg-white"
+          className="flex-1 max-w-xs md:max-w-sm flex items-center gap-2 rounded px-3 py-2 transition-all duration-150"
+          style={{
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+          }}
+          onFocus={e => {
+            e.currentTarget.style.borderColor = 'var(--text-1)'
+            e.currentTarget.style.background = 'var(--surface)'
+          }}
+          onBlur={e => {
+            e.currentTarget.style.borderColor = 'var(--border)'
+            e.currentTarget.style.background = 'var(--surface-2)'
+          }}
         >
-          <span className="text-[#a3a3a3] shrink-0">
+          <span style={{ color: 'var(--text-4)' }} className="shrink-0">
             <IconSearch />
           </span>
           <input
@@ -124,7 +162,8 @@ export default function Topbar({ email }: { email: string }) {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Cari file..."
-            className="bg-transparent border-none outline-none text-[#111111] text-sm flex-1 placeholder:text-[#a3a3a3] min-w-0"
+            className="bg-transparent border-none outline-none text-sm flex-1 min-w-0"
+            style={{ color: 'var(--text-1)' }}
           />
         </form>
 
@@ -152,11 +191,21 @@ export default function Topbar({ email }: { email: string }) {
             Catatan
           </button>
 
+          {/* ── Dark mode toggle ── */}
+          <button
+            onClick={toggle}
+            className="theme-toggle"
+            title={theme === 'dark' ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
+            aria-label={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          >
+            {theme === 'dark' ? <IconSun /> : <IconMoon />}
+          </button>
+
           {/* Profile dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(prev => !prev)}
-              className="w-8 h-8 rounded bg-[#111111] text-white flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-[#333333] transition-colors shrink-0"
+              className="w-8 h-8 rounded bg-[#111111] text-white flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-[#333333] transition-colors shrink-0 dark:bg-[#f0f0f0] dark:text-[#111111] dark:hover:bg-[#d4d4d4]"
               aria-label="Profil"
               aria-expanded={isDropdownOpen}
             >
@@ -164,36 +213,68 @@ export default function Topbar({ email }: { email: string }) {
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white border border-[#e5e5e5] rounded shadow-[0_4px_12px_rgba(0,0,0,0.08)] py-1 z-50 animate-fade-in">
+              <div
+                className="absolute right-0 mt-2 w-52 rounded py-1 z-50 animate-fade-in"
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                }}
+              >
                 {/* User info */}
-                <div className="px-4 py-3 border-b border-[#f5f5f5]">
-                  <p className="section-heading text-[#a3a3a3]">Pengguna</p>
-                  <p className="text-sm font-bold text-[#111111] truncate mt-1.5">
+                <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--surface-2)' }}>
+                  <p className="section-heading">Pengguna</p>
+                  <p className="text-sm font-bold truncate mt-1.5" style={{ color: 'var(--text-1)' }}>
                     @{username || 'user'}
                   </p>
-                  <p className="text-[11px] text-[#737373] truncate mt-0.5" title={email}>
+                  <p className="text-[11px] truncate mt-0.5" style={{ color: 'var(--text-3)' }} title={email}>
                     {email}
                   </p>
                 </div>
 
                 <button
                   onClick={() => { router.push('/dashboard'); setIsDropdownOpen(false) }}
-                  className="w-full text-left px-4 py-2.5 text-xs text-[#525252] hover:bg-[#f5f5f5] hover:text-[#111111] transition-colors cursor-pointer"
+                  className="w-full text-left px-4 py-2.5 text-xs transition-colors cursor-pointer"
+                  style={{ color: 'var(--text-2)' }}
+                  onMouseEnter={e => {
+                    (e.target as HTMLElement).style.background = 'var(--surface-2)'
+                    ;(e.target as HTMLElement).style.color = 'var(--text-1)'
+                  }}
+                  onMouseLeave={e => {
+                    (e.target as HTMLElement).style.background = 'transparent'
+                    ;(e.target as HTMLElement).style.color = 'var(--text-2)'
+                  }}
                 >
                   Beranda Brankas
                 </button>
                 <button
                   onClick={() => { router.push('/settings'); setIsDropdownOpen(false) }}
-                  className="w-full text-left px-4 py-2.5 text-xs text-[#525252] hover:bg-[#f5f5f5] hover:text-[#111111] transition-colors cursor-pointer"
+                  className="w-full text-left px-4 py-2.5 text-xs transition-colors cursor-pointer"
+                  style={{ color: 'var(--text-2)' }}
+                  onMouseEnter={e => {
+                    (e.target as HTMLElement).style.background = 'var(--surface-2)'
+                    ;(e.target as HTMLElement).style.color = 'var(--text-1)'
+                  }}
+                  onMouseLeave={e => {
+                    (e.target as HTMLElement).style.background = 'transparent'
+                    ;(e.target as HTMLElement).style.color = 'var(--text-2)'
+                  }}
                 >
                   Pengaturan Profil
                 </button>
 
-                <div className="h-px bg-[#f5f5f5] my-1" />
+                <div className="h-px my-1" style={{ background: 'var(--surface-2)' }} />
 
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2.5 text-xs text-[#DC2626] hover:bg-[#fef2f2] transition-colors cursor-pointer font-medium"
+                  className="w-full text-left px-4 py-2.5 text-xs transition-colors cursor-pointer font-medium"
+                  style={{ color: '#DC2626' }}
+                  onMouseEnter={e => {
+                    (e.target as HTMLElement).style.background = 'var(--accent-bg)'
+                  }}
+                  onMouseLeave={e => {
+                    (e.target as HTMLElement).style.background = 'transparent'
+                  }}
                 >
                   Keluar
                 </button>

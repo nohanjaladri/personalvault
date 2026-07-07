@@ -50,7 +50,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] flex flex-col">
+    <div className="min-h-screen flex flex-col transition-colors duration-200" style={{ background: 'var(--bg)' }}>
       {/* Top rule — red accent line */}
       <div className="h-px bg-[#DC2626] w-full shrink-0" />
 
@@ -104,7 +104,7 @@ export default function LoginPage() {
         </div>
 
         {/* ── Right column: login form ── */}
-        <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-16 py-16">
+        <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-16 py-16" style={{ background: 'var(--bg)' }}>
           {/* Mobile wordmark */}
           <div className="lg:hidden mb-10">
             <span className="text-[10px] font-bold text-[#DC2626] uppercase tracking-[0.2em]">Vault</span>

@@ -176,21 +176,21 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl space-y-8 pb-16">
       {/* Page header */}
-      <div className="border-b border-[#e5e5e5] pb-6">
+      <div className="border-b border-[var(--border)] pb-6">
         <p className="text-xs font-semibold text-[#DC2626] uppercase tracking-widest mb-1">Vault</p>
-        <h1 className="text-2xl font-black text-[#111111]">Pengaturan</h1>
+        <h1 className="text-2xl font-black text-[var(--text-1)]">Pengaturan</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {/* Left Column */}
         <div className="space-y-6">
           {/* Profile Card */}
-          <div className="bg-white border border-[#e5e5e5] rounded p-6 space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-[#a3a3a3]">Profil Saya</h3>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded p-6 space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--text-4)]">Profil Saya</h3>
 
             <form onSubmit={handleUpdateUsername} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Username</label>
+                <label className="text-xs font-semibold text-[var(--text-2)] block mb-2 uppercase tracking-wider">Username</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -212,7 +212,7 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#a3a3a3] block mb-2 uppercase tracking-wider">Email</label>
+                <label className="text-xs font-semibold text-[var(--text-4)] block mb-2 uppercase tracking-wider">Email</label>
                 <input
                   type="email"
                   disabled
@@ -224,31 +224,31 @@ export default function SettingsPage() {
           </div>
 
           {/* Storage Card */}
-          <div className="bg-white border border-[#e5e5e5] rounded p-6 space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-[#a3a3a3]">Kapasitas Penyimpanan</h3>
-            <div className="flex justify-between text-sm text-[#111111] mb-2">
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded p-6 space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--text-4)]">Kapasitas Penyimpanan</h3>
+            <div className="flex justify-between text-sm text-[var(--text-1)] mb-2">
               <span>{formatFileSize(usedBytes)} digunakan</span>
               <span className="text-[#DC2626] font-bold">{usedPct}%</span>
             </div>
-            <div className="h-1.5 bg-[#f5f5f5] rounded-full overflow-hidden">
+            <div className="h-1.5 bg-[var(--surface-2)] rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#DC2626] transition-all duration-500"
                 style={{ width: `${usedPct}%` }}
               />
             </div>
-            <p className="text-xs text-[#a3a3a3]">{files.length} file · batas 10 GB</p>
+            <p className="text-xs text-[var(--text-4)]">{files.length} file · batas 10 GB</p>
           </div>
         </div>
 
         {/* Right Column */}
         <div className="space-y-6">
           {/* Change Password Card */}
-          <div className="bg-white border border-[#e5e5e5] rounded p-6 space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-[#a3a3a3]">Ganti Password</h3>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded p-6 space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--text-4)]">Ganti Password</h3>
 
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Password Baru</label>
+                <label className="text-xs font-semibold text-[var(--text-2)] block mb-2 uppercase tracking-wider">Password Baru</label>
                 <input
                   type="password"
                   required
@@ -261,7 +261,7 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Konfirmasi Password</label>
+                <label className="text-xs font-semibold text-[var(--text-2)] block mb-2 uppercase tracking-wider">Konfirmasi Password</label>
                 <input
                   type="password"
                   required
@@ -284,20 +284,20 @@ export default function SettingsPage() {
           </div>
 
           {/* Google Drive Card */}
-          <div className="bg-white border border-[#e5e5e5] rounded p-6 space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-[#a3a3a3]">Penyimpanan Tambahan</h3>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded p-6 space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--text-4)]">Penyimpanan Tambahan</h3>
             <div className="space-y-3">
               <div>
-                <p className="text-sm font-bold text-[#111111]">Google Drive</p>
-                <p className="text-xs text-[#737373] mt-1 leading-relaxed">
+                <p className="text-sm font-bold text-[var(--text-1)]">Google Drive</p>
+                <p className="text-xs text-[var(--text-3)] mt-1 leading-relaxed">
                   Hubungkan Google Drive untuk menyimpan foto, video, audio, dan dokumen secara terpisah.
                 </p>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-[#f5f5f5]">
+              <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
                 <div className="flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-sm ${isGDriveConnected ? 'bg-emerald-500' : 'bg-[#DC2626]'}`} />
-                  <span className="text-xs text-[#737373]">
+                  <span className="text-xs text-[var(--text-3)]">
                     {isGDriveConnected ? 'Terhubung' : 'Terputus'}
                   </span>
                 </div>

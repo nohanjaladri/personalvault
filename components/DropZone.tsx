@@ -274,10 +274,10 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
         className={`
           border-2 border-dashed rounded p-8 text-center transition-all duration-150
           ${uploading
-            ? 'opacity-50 cursor-not-allowed border-[#d4d4d4] bg-[#fafafa]'
+            ? 'opacity-50 cursor-not-allowed border-[var(--border-2)] bg-[var(--bg)]'
             : isDragging
-              ? 'border-[#111111] bg-[#f5f5f5]'
-              : 'border-[#d4d4d4] bg-white hover:border-[#a3a3a3] hover:bg-[#fafafa] cursor-pointer'
+              ? 'border-[var(--text-1)] bg-[var(--surface-2)]'
+              : 'border-[var(--border-2)] bg-[var(--surface)] hover:border-[var(--text-4)] hover:bg-[var(--bg)] cursor-pointer'
           }
         `}
       >
@@ -305,15 +305,15 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
 
         {/* Icon */}
         <div className="flex justify-center mb-4">
-          <div className={`w-10 h-10 rounded flex items-center justify-center border transition-colors ${isDragging ? 'bg-[#111111] border-[#111111] text-white' : 'bg-[#f5f5f5] border-[#e5e5e5] text-[#737373]'}`}>
+          <div className={`w-10 h-10 rounded flex items-center justify-center border transition-colors ${isDragging ? 'bg-[var(--text-1)] border-[var(--text-1)] text-[var(--bg)]' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-3)]'}`}>
             <IconUpload />
           </div>
         </div>
 
-        <p className="text-sm font-semibold text-[#111111] mb-1">
+        <p className="text-sm font-semibold text-[var(--text-1)] mb-1">
           {isDragging ? 'Lepaskan file di sini' : 'Drag & drop file atau folder'}
         </p>
-        <p className="text-xs text-[#a3a3a3] mb-5">
+        <p className="text-xs text-[var(--text-4)] mb-5">
           Folder akan otomatis dikompres menjadi .zip
         </p>
 
@@ -342,12 +342,12 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
 
       {/* ── File queue ── */}
       {selectedFiles.length > 0 && (
-        <div className="bg-white border border-[#e5e5e5] rounded p-5 space-y-4">
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded p-5 space-y-4">
           {/* Queue header */}
-          <div className="flex items-center justify-between pb-3 border-b border-[#f5f5f5]">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
             <div>
-              <p className="section-heading text-[#525252]">Antrean Unggahan</p>
-              <p className="text-xs text-[#a3a3a3] mt-1">
+              <p className="section-heading text-[var(--text-2)]">Antrean Unggahan</p>
+              <p className="text-xs text-[var(--text-4)] mt-1">
                 {selectedFiles.length} file &nbsp;·&nbsp; {formatFileSize(totalSize)}
               </p>
             </div>
@@ -366,23 +366,23 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between px-3 py-2.5 bg-[#fafafa] border border-[#f5f5f5] rounded text-xs"
+                className="flex items-center justify-between px-3 py-2.5 bg-[var(--bg)] border border-[var(--border)] rounded text-xs"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="text-[#a3a3a3] shrink-0"><IconFile /></span>
+                  <span className="text-[var(--text-4)] shrink-0"><IconFile /></span>
                   <span
-                    className="truncate text-[#525252] font-medium"
+                    className="truncate text-[var(--text-2)] font-medium"
                     title={file.webkitRelativePath || file.name}
                   >
                     {file.webkitRelativePath || file.name}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-3">
-                  <span className="text-[#a3a3a3] tabular-nums">{formatFileSize(file.size)}</span>
+                  <span className="text-[var(--text-4)] tabular-nums">{formatFileSize(file.size)}</span>
                   {!uploading && (
                     <button
                       onClick={e => { e.stopPropagation(); handleRemoveFile(index) }}
-                      className="text-[#d4d4d4] hover:text-[#DC2626] transition-colors font-bold text-sm cursor-pointer leading-none"
+                      className="text-[var(--border-2)] hover:text-[#DC2626] transition-colors font-bold text-sm cursor-pointer leading-none"
                       title="Hapus dari antrean"
                     >
                       &times;
@@ -402,12 +402,12 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
                     <div className="flex items-center gap-2 min-w-0">
                       {/* Active indicator: small pulsing dot */}
                       <div className="w-1.5 h-1.5 rounded-full bg-[#DC2626] shrink-0 animate-pulse" />
-                      <span className="text-xs text-[#525252] truncate">
+                      <span className="text-xs text-[var(--text-2)] truncate">
                         {currentUploadingFile}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span className="text-xs font-semibold text-[#111111] tabular-nums">
+                      <span className="text-xs font-semibold text-[var(--text-1)] tabular-nums">
                         {currentFileProgress}%
                       </span>
                       <button
@@ -419,9 +419,9 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
                     </div>
                   </div>
                   {/* Current file progress */}
-                  <div className="h-[3px] bg-[#f5f5f5] rounded-sm overflow-hidden">
+                  <div className="h-[3px] bg-[var(--surface-2)] rounded-sm overflow-hidden">
                     <div
-                      className="h-full bg-[#111111] transition-all duration-150"
+                      className="h-full bg-[var(--text-1)] transition-all duration-150"
                       style={{ width: `${currentFileProgress}%` }}
                     />
                   </div>
@@ -429,12 +429,12 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
               )}
 
               {/* Total queue progress */}
-              <div className="space-y-1.5 pt-2 border-t border-[#f5f5f5]">
+              <div className="space-y-1.5 pt-2 border-t border-[var(--border)]">
                 <div className="flex justify-between">
-                  <span className="section-heading text-[#a3a3a3]">Total</span>
-                  <span className="text-[10px] font-semibold text-[#111111] tabular-nums">{progress}%</span>
+                  <span className="section-heading text-[var(--text-4)]">Total</span>
+                  <span className="text-[10px] font-semibold text-[var(--text-1)] tabular-nums">{progress}%</span>
                 </div>
-                <div className="h-[3px] bg-[#f5f5f5] rounded-sm overflow-hidden">
+                <div className="h-[3px] bg-[var(--surface-2)] rounded-sm overflow-hidden">
                   <div
                     className="h-full bg-[#DC2626] transition-all duration-300"
                     style={{ width: `${progress}%` }}

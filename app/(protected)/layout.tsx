@@ -15,11 +15,11 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   return (
     <ToastProvider>
-      <div className="flex h-screen relative z-10">
+      <div className="flex h-screen relative z-10 transition-colors duration-200" style={{ background: 'var(--bg)' }}>
         <Sidebar usedBytes={usedBytes} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Topbar email={user.email ?? ''} />
-          <main className="flex-1 overflow-y-auto p-6 md:p-8 scrollbar-thin">
+          <main className="flex-1 overflow-y-auto p-6 md:p-8 scrollbar-thin" style={{ background: 'var(--bg)' }}>
             {children}
           </main>
         </div>

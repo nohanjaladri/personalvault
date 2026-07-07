@@ -31,13 +31,13 @@ export default function CategoryCards({ stats }: { stats: CategoryStat[] }) {
             className="group file-card flex flex-col gap-3 p-4"
           >
             {/* Icon char */}
-            <span className="text-[13px] font-mono text-[#a3a3a3] group-hover:text-[#111111] transition-colors select-none">
+            <span className="text-[13px] font-mono text-[#a3a3a3] group-hover:text-[var(--text-1)] transition-colors select-none">
               {CATEGORY_CHARS[cat]}
             </span>
 
             {/* Label */}
             <div>
-              <p className="text-sm font-semibold text-[#111111] leading-tight">
+              <p className="text-sm font-semibold text-[var(--text-1)] leading-tight">
                 {CATEGORY_LABEL[cat]}
               </p>
               <p className="text-xs text-[#a3a3a3] mt-1 tabular-nums">

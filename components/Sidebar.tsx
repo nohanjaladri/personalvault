@@ -67,16 +67,18 @@ export default function Sidebar({ usedBytes }: { usedBytes: number }) {
       )}
 
       <aside
-        className={`
-          fixed md:static inset-y-0 left-0 w-[208px] md:w-[200px] shrink-0
-          bg-[#111111] text-white flex flex-col z-50
+        style={{
+          background: 'var(--sidebar-bg)',
+          borderRight: '1px solid var(--sidebar-border)',
+        }}
+        className={`fixed md:static inset-y-0 left-0 w-[208px] md:w-[200px] shrink-0
+          text-white flex flex-col z-50
           transform transition-transform duration-200 ease-out
-          border-r border-[#1e1e1e]
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         {/* ── Wordmark ── */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-[#1e1e1e]">
+        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
           <div className="flex items-center gap-2">
             {/* Logo mark: red square */}
             <div className="w-5 h-5 bg-[#DC2626] rounded-sm flex items-center justify-center shrink-0">
@@ -102,7 +104,7 @@ export default function Sidebar({ usedBytes }: { usedBytes: number }) {
         {/* ── Navigation ── */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-px">
           {/* Section label */}
-          <p className="section-heading text-[#404040] px-3 pt-1 pb-3">Navigasi</p>
+          <p className="px-3 pt-1 pb-3 text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: 'var(--sidebar-text)' }}>Navigasi</p>
 
           {links.map(({ href, label, IconEl }) => {
             const isActive = href === '/dashboard'
@@ -124,14 +126,14 @@ export default function Sidebar({ usedBytes }: { usedBytes: number }) {
         </nav>
 
         {/* ── Storage indicator ── */}
-        <div className="px-5 py-5 border-t border-[#1e1e1e]">
+        <div className="px-5 py-5" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
           <div className="flex justify-between items-center mb-2">
-            <span className="section-heading text-[#404040]">Penyimpanan</span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: 'var(--sidebar-text)' }}>Penyimpanan</span>
             <span className="text-[10px] font-bold text-[#DC2626]">{usedPct.toFixed(0)}%</span>
           </div>
 
           {/* Progress track */}
-          <div className="h-[3px] bg-[#2a2a2a] rounded-sm overflow-hidden">
+          <div className="h-[3px] rounded-sm overflow-hidden" style={{ background: 'var(--sidebar-stripe)' }}>
             <div
               className="h-full bg-[#DC2626] transition-all duration-500"
               style={{ width: `${usedPct}%` }}
@@ -139,8 +141,8 @@ export default function Sidebar({ usedBytes }: { usedBytes: number }) {
           </div>
 
           <div className="flex justify-between mt-2">
-            <p className="text-[10px] text-[#404040]">{formatFileSize(usedBytes)}</p>
-            <p className="text-[10px] text-[#404040]">10 GB</p>
+            <p className="text-[10px]" style={{ color: 'var(--sidebar-text)' }}>{formatFileSize(usedBytes)}</p>
+            <p className="text-[10px]" style={{ color: 'var(--sidebar-text)' }}>10 GB</p>
           </div>
         </div>
       </aside>

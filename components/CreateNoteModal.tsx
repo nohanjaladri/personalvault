@@ -130,15 +130,15 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div className="w-full max-w-lg bg-white border border-[#e5e5e5] rounded shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#f5f5f5] pb-4">
-          <h2 className="text-base font-bold text-[#111111]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border)] rounded shadow-[0_8px_32px_rgba(0,0,0,0.25)] p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
+          <h2 className="text-base font-bold text-[var(--text-1)]">
             Buat Catatan / Kode Baru
           </h2>
           <button
             onClick={onClose}
-            className="text-[#a3a3a3] hover:text-[#111111] transition-colors text-xl font-bold leading-none cursor-pointer"
+            className="text-[var(--text-4)] hover:text-[var(--text-1)] transition-colors text-xl font-bold leading-none cursor-pointer"
             disabled={uploading}
           >
             &times;
@@ -147,7 +147,7 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Judul (Nama File)</label>
+            <label className="text-xs font-semibold text-[var(--text-2)] block mb-2 uppercase tracking-wider">Judul (Nama File)</label>
             <input
               type="text"
               required
@@ -161,7 +161,7 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Format</label>
+              <label className="text-xs font-semibold text-[var(--text-2)] block mb-2 uppercase tracking-wider">Format</label>
               <select
                 disabled={uploading}
                 value={formatIndex}
@@ -176,14 +176,14 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
               </select>
             </div>
             <div className="flex flex-col justify-end">
-              <span className="text-[10px] text-[#a3a3a3] leading-normal">
+              <span className="text-[10px] text-[var(--text-4)] leading-normal">
                 Ekstensi file otomatis ditambahkan jika belum ada.
               </span>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Isi Catatan / Kode</label>
+            <label className="text-xs font-semibold text-[var(--text-2)] block mb-2 uppercase tracking-wider">Isi Catatan / Kode</label>
             <textarea
               required
               disabled={uploading}
@@ -197,13 +197,13 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
 
           {uploading && (
             <div className="space-y-1">
-              <div className="flex justify-between text-xs text-[#737373]">
+              <div className="flex justify-between text-xs text-[var(--text-3)]">
                 <span>Sedang menyimpan...</span>
                 <span>{progress}%</span>
               </div>
-              <div className="h-1 bg-[#f5f5f5] rounded-full overflow-hidden">
+              <div className="h-1 bg-[var(--surface-2)] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#111111] transition-all duration-300"
+                  className="h-full bg-[var(--text-1)] transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
