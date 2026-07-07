@@ -192,40 +192,42 @@ export default function DashboardPage() {
 
         {!q && (
           <>
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-3.5">Kategori</p>
+            <p className="section-heading text-[#737373] mb-4">Kategori</p>
             <CategoryCards stats={categoryStats} />
           </>
         )}
 
-        <div className="flex items-center justify-between mb-3.5 mt-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-600">
+        <div className="flex items-center justify-between mb-4 mt-8">
+          <p className="section-heading text-[#737373]">
             {q ? `Hasil pencarian "${q}"` : 'File Terbaru'}
           </p>
-          <span className="text-xs text-slate-600">{files.length} file</span>
+          <span className="text-xs text-[#a3a3a3] tabular-nums">{files.length} file</span>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-[rgba(10,8,22,0.45)] border border-white/[0.08] rounded-2xl overflow-hidden flex flex-col h-[260px] relative">
+              <div key={i} className="bg-white border border-[#e5e5e5] rounded overflow-hidden flex flex-col relative">
                 {/* Shimmer overlay */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                  <div className="w-[200%] h-full -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
+                  <div className="w-[200%] h-full -translate-x-full animate-shimmer bg-[linear-gradient(90deg,transparent,rgba(0,0,0,0.03),transparent)]" />
                 </div>
-                <div className="w-full aspect-[4/3] bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-xl bg-white/[0.03]" />
+                {/* Thumbnail area */}
+                <div className="w-full aspect-[4/3] bg-[#f5f5f5] border-b border-[#f0f0f0] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded bg-[#ebebeb]" />
                 </div>
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="h-4 w-3/4 bg-white/5 rounded-md" />
-                    <div className="h-3 w-1/4 bg-white/[0.03] rounded-md mt-2" />
+                {/* Content area */}
+                <div className="p-4 flex-1 flex flex-col justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="h-3.5 w-3/4 bg-[#f5f5f5] rounded" />
+                    <div className="h-2.5 w-1/3 bg-[#f0f0f0] rounded" />
                   </div>
-                  <div className="flex items-center justify-between border-t border-white/[0.05] pt-3">
-                    <div className="h-4 w-10 bg-white/[0.03] rounded-md" />
-                    <div className="flex gap-1.5">
-                      <div className="w-7 h-7 bg-white/[0.03] rounded-lg border border-white/5" />
-                      <div className="w-7 h-7 bg-white/[0.03] rounded-lg border border-white/5" />
-                      <div className="w-7 h-7 bg-white/[0.03] rounded-lg border border-white/5" />
+                  <div className="flex items-center justify-between border-t border-[#f5f5f5] pt-3">
+                    <div className="h-3 w-10 bg-[#f5f5f5] rounded" />
+                    <div className="flex gap-1">
+                      <div className="w-7 h-7 bg-[#f5f5f5] rounded border border-[#ebebeb]" />
+                      <div className="w-7 h-7 bg-[#f5f5f5] rounded border border-[#ebebeb]" />
+                      <div className="w-7 h-7 bg-[#f5f5f5] rounded border border-[#ebebeb]" />
                     </div>
                   </div>
                 </div>

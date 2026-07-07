@@ -3,20 +3,17 @@ import { useCallback, useRef, useState } from 'react'
 import { useToast } from './Toast'
 import JSZip from 'jszip'
 
-// Fungsi kompresi folder menjadi ZIP di sisi klien (browser)
+/* ── Compress folder to ZIP (client-side) ──────────────────── */
 const compressFolderToZip = async (files: File[]): Promise<File> => {
   const zip = new JSZip()
   let folderName = 'folder-archive'
-  
+
   if (files.length > 0 && files[0].webkitRelativePath) {
     const parts = files[0].webkitRelativePath.split('/')
-    if (parts[0]) {
-      folderName = parts[0]
-    }
+    if (parts[0]) folderName = parts[0]
   }
 
   files.forEach(file => {
-    // Masukkan file dengan path relatif aslinya untuk menjaga hierarki folder saat diekstrak
     zip.file(file.webkitRelativePath || file.name, file)
   })
 
@@ -32,6 +29,29 @@ const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
 }
 
+/* ── SVG icons ─────────────────────────────────────────────── */
+const IconUpload = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <path d="M10 13V4M6 7l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M3 14v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+)
+
+const IconFile = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+    <path d="M2.5 1.5h5.5l2.5 2.5v7.5a.5.5 0 0 1-.5.5h-7.5a.5.5 0 0 1-.5-.5v-9.5a.5.5 0 0 1 .5-.5Z"
+      stroke="currentColor" strokeWidth="1.2"/>
+    <path d="M8 1.5V4h2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+  </svg>
+)
+
+const IconFolder = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+    <path d="M1 3.5A1 1 0 0 1 2 2.5h2.586a1 1 0 0 1 .707.293L6 3.5h5a1 1 0 0 1 1 1V10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3.5Z"
+      stroke="currentColor" strokeWidth="1.2"/>
+  </svg>
+)
+
 export default function DropZone({ onUploadComplete }: { onUploadComplete: () => void }) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
@@ -45,19 +65,18 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
   const activeXhrRef = useRef<XMLHttpRequest | null>(null)
 
   const uploadFile = async (file: File, onProgress: (pct: number) => void) => {
-    // Jalur folder relatif jika ada (menjaga struktur folder)
     const displayName = file.webkitRelativePath || file.name
 
     const urlRes = await fetch('/api/upload-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        fileName: displayName, 
+      body: JSON.stringify({
+        fileName: displayName,
         contentType: file.type || 'application/octet-stream',
-        size: file.size 
+        size: file.size,
       }),
     })
-    
+
     if (!urlRes.ok) {
       const errData = await urlRes.json().catch(() => ({}))
       throw new Error(errData.error || `Gagal mendapatkan upload URL untuk ${displayName}`)
@@ -68,74 +87,52 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
     let finalR2Key = r2Key
 
     if (isGDrive) {
-      // Unggah ke Google Drive via server stream dengan XMLHttpRequest untuk progress akurat
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         activeXhrRef.current = xhr
         xhr.open('POST', uploadUrl)
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
         xhr.setRequestHeader('X-File-Name', encodeURIComponent(displayName))
-        
+
         xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            onProgress(Math.round((e.loaded / e.total) * 100))
-          }
+          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
         }
-        
         xhr.onload = () => {
           activeXhrRef.current = null
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const uploadData = JSON.parse(xhr.responseText)
               finalDriveFileId = uploadData.driveFileId
-              resolve()
-            } catch {
-              resolve()
-            }
+            } catch { /* ignore */ }
+            resolve()
           } else {
-            reject(new Error(`Gagal mengunggah file ${displayName} ke Google Drive`))
+            reject(new Error(`Gagal mengunggah ${displayName} ke Google Drive`))
           }
         }
-        xhr.onerror = () => {
-          activeXhrRef.current = null
-          reject(new Error(`Koneksi error saat mengunggah ${displayName}`))
-        }
-        xhr.onabort = () => {
-          activeXhrRef.current = null
-          reject(new Error('Unggahan dibatalkan oleh pengguna'))
-        }
+        xhr.onerror = () => { activeXhrRef.current = null; reject(new Error(`Koneksi error saat mengunggah ${displayName}`)) }
+        xhr.onabort = () => { activeXhrRef.current = null; reject(new Error('Unggahan dibatalkan oleh pengguna')) }
         xhr.send(file)
       })
     } else {
-      // Unggah ke Supabase Storage (S3) biasa dengan XMLHttpRequest untuk progress akurat
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         activeXhrRef.current = xhr
         xhr.open('PUT', uploadUrl)
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
-        
+
         xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            onProgress(Math.round((e.loaded / e.total) * 100))
-          }
+          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
         }
-        
         xhr.onload = () => {
           activeXhrRef.current = null
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve()
           } else {
-            reject(new Error(`Gagal mengunggah file ${displayName} ke storage`))
+            reject(new Error(`Gagal mengunggah ${displayName} ke storage`))
           }
         }
-        xhr.onerror = () => {
-          activeXhrRef.current = null
-          reject(new Error(`Koneksi error saat mengunggah ${displayName}`))
-        }
-        xhr.onabort = () => {
-          activeXhrRef.current = null
-          reject(new Error('Unggahan dibatalkan oleh pengguna'))
-        }
+        xhr.onerror = () => { activeXhrRef.current = null; reject(new Error(`Koneksi error saat mengunggah ${displayName}`)) }
+        xhr.onabort = () => { activeXhrRef.current = null; reject(new Error('Unggahan dibatalkan oleh pengguna')) }
         xhr.send(file)
       })
     }
@@ -143,19 +140,18 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
     const metaRes = await fetch('/api/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        name: displayName, 
-        size: file.size, 
-        mimeType: file.type || 'application/octet-stream', 
+      body: JSON.stringify({
+        name: displayName,
+        size: file.size,
+        mimeType: file.type || 'application/octet-stream',
         r2Key: finalR2Key || null,
-        driveFileId: finalDriveFileId || null
+        driveFileId: finalDriveFileId || null,
       }),
     })
     if (!metaRes.ok) throw new Error(`Gagal menyimpan metadata untuk ${displayName}`)
-    
-    // Kirim event kustom untuk mencatat riwayat unggahan sesi ini
-    window.dispatchEvent(new CustomEvent('session-file-uploaded', { 
-      detail: { name: displayName, size: file.size, mimeType: file.type || 'application/octet-stream' } 
+
+    window.dispatchEvent(new CustomEvent('session-file-uploaded', {
+      detail: { name: displayName, size: file.size, mimeType: file.type || 'application/octet-stream' },
     }))
   }
 
@@ -169,20 +165,19 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
         const file = selectedFiles[i]
         setCurrentUploadingFile(file.webkitRelativePath || file.name)
         setCurrentFileProgress(0)
-        await uploadFile(file, (pct) => {
-          setCurrentFileProgress(pct)
-        })
+        await uploadFile(file, (pct) => setCurrentFileProgress(pct))
         setProgress(Math.round(((i + 1) / selectedFiles.length) * 100))
       }
-      showToast(`Berhasil mengunggah ${selectedFiles.length} file ke brankas! ✨`)
+      showToast(`${selectedFiles.length} file berhasil diunggah ke Vault ✓`)
       setSelectedFiles([])
       onUploadComplete()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      if (err.message === 'Unggahan dibatalkan oleh pengguna') {
-        showToast('Unggahan dibatalkan ⚠️')
+      const errMsg = err instanceof Error ? err.message : ''
+      if (errMsg === 'Unggahan dibatalkan oleh pengguna') {
+        showToast('Unggahan dibatalkan')
       } else {
-        showToast(err.message || 'Terjadi kesalahan saat mengunggah ❌')
+        showToast(errMsg || 'Terjadi kesalahan saat mengunggah')
       }
     } finally {
       setUploading(false)
@@ -193,25 +188,21 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
     }
   }
 
-  // Membaca isi folder secara rekursif dari DataTransferItem / FileSystemEntry
-  const readEntryIntoFiles = async (entry: any, path = ''): Promise<File[]> => {
+  const readEntryIntoFiles = async (entry: unknown, path = ''): Promise<File[]> => {
+    const e = entry as { isFile: boolean; isDirectory: boolean; file: (cb: (f: File) => void, err: () => void) => void; name: string; createReader: () => { readEntries: (cb: (entries: unknown[]) => void, err: () => void) => void } }
     return new Promise((resolve) => {
-      if (entry.isFile) {
-        entry.file((file: File) => {
-          // Buat objek File baru dengan webkitRelativePath kustom agar dikenali sebagai folder oleh zip maker
+      if (e.isFile) {
+        e.file((file: File) => {
           const relativePath = path ? `${path}/${file.name}` : file.name
           const fileWithRelativePath = new File([file], file.name, { type: file.type })
-          Object.defineProperty(fileWithRelativePath, 'webkitRelativePath', {
-            value: relativePath,
-            writable: false
-          })
+          Object.defineProperty(fileWithRelativePath, 'webkitRelativePath', { value: relativePath, writable: false })
           resolve([fileWithRelativePath])
         }, () => resolve([]))
-      } else if (entry.isDirectory) {
-        const dirReader = entry.createReader()
-        dirReader.readEntries(async (entries: any[]) => {
-          const filePromises = entries.map(childEntry => 
-            readEntryIntoFiles(childEntry, path ? `${path}/${entry.name}` : entry.name)
+      } else if (e.isDirectory) {
+        const dirReader = e.createReader()
+        dirReader.readEntries(async (entries: unknown[]) => {
+          const filePromises = entries.map(childEntry =>
+            readEntryIntoFiles(childEntry, path ? `${path}/${e.name}` : e.name)
           )
           const results = await Promise.all(filePromises)
           resolve(results.flat())
@@ -226,41 +217,35 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
     if (!fileList) return
     let filesArray: File[] = []
 
-    // Jika di-drop, gunakan webkitGetAsEntry untuk membaca folder secara rekursif
     if (droppedItems && droppedItems.length > 0) {
       const promises = Array.from(droppedItems).map(async (item) => {
         const entry = item.webkitGetAsEntry()
-        if (entry) {
-          return readEntryIntoFiles(entry)
-        }
+        if (entry) return readEntryIntoFiles(entry)
         return []
       })
       const results = await Promise.all(promises)
       filesArray = results.flat()
-      
-      // Jika tidak ada berkas rekursif yang ditemukan (fallback)
-      if (filesArray.length === 0) {
-        filesArray = Array.from(fileList)
-      }
+      if (filesArray.length === 0) filesArray = Array.from(fileList)
     } else {
       filesArray = Array.from(fileList)
     }
 
-    // Deteksi jika unggahan berasal dari folder (memiliki webkitRelativePath)
     const isFolderUpload = filesArray.length > 0 && filesArray.some(f => !!f.webkitRelativePath)
 
     if (isFolderUpload) {
       const rootFolder = filesArray[0].webkitRelativePath.split('/')[0] || 'folder'
-      const wantZip = confirm(`Folder "${rootFolder}" terdeteksi.\n\nApakah Anda ingin mengompres folder ini menjadi file tunggal "${rootFolder}.zip" sebelum masuk antrean?\n(Direkomendasikan untuk menghemat kuota & merapikan struktur brankas)`)
-      
+      const wantZip = confirm(
+        `Folder "${rootFolder}" terdeteksi.\n\n` +
+        `Kompres menjadi "${rootFolder}.zip" sebelum unggah?\n` +
+        `(Direkomendasikan untuk menghemat kuota)`
+      )
       if (wantZip) {
-        showToast('Sedang membuat file ZIP di browser... 🗜️')
+        showToast('Membuat ZIP di browser...')
         try {
           const zippedFile = await compressFolderToZip(filesArray)
           setSelectedFiles(prev => [...prev, zippedFile])
-        } catch (err) {
-          console.error(err)
-          showToast('Gagal membuat arsip ZIP ❌')
+        } catch {
+          showToast('Gagal membuat arsip ZIP')
         }
         return
       }
@@ -277,100 +262,127 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
 
   return (
     <div className="space-y-4">
-      {/* Drag & Drop Area */}
+      {/* ── Drop zone ── */}
       <div
-        onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+        onDragOver={e => { e.preventDefault(); if (!uploading) setIsDragging(true) }}
         onDragLeave={() => setIsDragging(false)}
-        onDrop={async (e) => { 
+        onDrop={async (e) => {
           e.preventDefault()
           setIsDragging(false)
-          await handleFiles(e.dataTransfer.files, e.dataTransfer.items)
+          if (!uploading) await handleFiles(e.dataTransfer.files, e.dataTransfer.items)
         }}
-        className={`border-2 border-dashed rounded-2xl p-7 text-center transition-all duration-300 ${
-          uploading ? 'opacity-50 cursor-not-allowed border-white/10 bg-white/[0.01]' :
-          isDragging ? 'border-violet-500 bg-violet-500/10 scale-[1.01]' : 'border-violet-500/30 bg-violet-500/[0.04] hover:bg-violet-500/10 hover:border-violet-500/60'
-        }`}
+        className={`
+          border-2 border-dashed rounded p-8 text-center transition-all duration-150
+          ${uploading
+            ? 'opacity-50 cursor-not-allowed border-[#d4d4d4] bg-[#fafafa]'
+            : isDragging
+              ? 'border-[#111111] bg-[#f5f5f5]'
+              : 'border-[#d4d4d4] bg-white hover:border-[#a3a3a3] hover:bg-[#fafafa] cursor-pointer'
+          }
+        `}
       >
-        {/* Input Berkas */}
-        <input id="file-input" ref={inputRef} type="file" multiple className="hidden" disabled={uploading} onChange={e => handleFiles(e.target.files)} />
-        
-        {/* Input Folder (HTML5 webkitdirectory) */}
-        <input 
-          id="folder-input" 
-          ref={folderInputRef} 
-          type="file" 
-          // @ts-ignore
-          webkitdirectory="true" 
-          directory="true" 
-          className="hidden" 
+        {/* Hidden inputs */}
+        <input
+          id="file-input"
+          ref={inputRef}
+          type="file"
+          multiple
+          className="hidden"
           disabled={uploading}
-          onChange={e => handleFiles(e.target.files)} 
+          onChange={e => handleFiles(e.target.files)}
+        />
+        <input
+          id="folder-input"
+          ref={folderInputRef}
+          type="file"
+          // @ts-ignore
+          webkitdirectory="true"
+          directory="true"
+          className="hidden"
+          disabled={uploading}
+          onChange={e => handleFiles(e.target.files)}
         />
 
-        <span className="text-3xl block mb-2 animate-bounce">📤</span>
-        <p className="text-slate-400 text-sm mb-3">Drag & drop file/folder ke sini, atau klik tombol di bawah</p>
-        
-        <div className="flex justify-center gap-3 mb-2" onClick={e => e.stopPropagation()}>
+        {/* Icon */}
+        <div className="flex justify-center mb-4">
+          <div className={`w-10 h-10 rounded flex items-center justify-center border transition-colors ${isDragging ? 'bg-[#111111] border-[#111111] text-white' : 'bg-[#f5f5f5] border-[#e5e5e5] text-[#737373]'}`}>
+            <IconUpload />
+          </div>
+        </div>
+
+        <p className="text-sm font-semibold text-[#111111] mb-1">
+          {isDragging ? 'Lepaskan file di sini' : 'Drag & drop file atau folder'}
+        </p>
+        <p className="text-xs text-[#a3a3a3] mb-5">
+          Folder akan otomatis dikompres menjadi .zip
+        </p>
+
+        {/* Action buttons */}
+        <div className="flex justify-center gap-3" onClick={e => e.stopPropagation()}>
           <button
             type="button"
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-colors cursor-pointer"
+            className="btn-primary text-xs py-2 px-4 gap-1.5 flex items-center cursor-pointer"
           >
-            📄 Pilih Berkas
+            <IconFile />
+            Pilih Berkas
           </button>
           <button
             type="button"
             disabled={uploading}
             onClick={() => folderInputRef.current?.click()}
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 transition-colors cursor-pointer"
+            className="btn-ghost text-xs py-2 px-4 gap-1.5 flex items-center cursor-pointer"
           >
-            📁 Pilih Folder
+            <IconFolder />
+            Pilih Folder
           </button>
         </div>
-
-        <p className="text-slate-600 text-[10px] mt-1">
-          folder otomatis dikompresi menjadi file .zip sebelum masuk antrean
-        </p>
       </div>
 
-      {/* Antrean Berkas */}
+      {/* ── File queue ── */}
       {selectedFiles.length > 0 && (
-        <div className="bg-slate-900/50 p-5 border border-white/10 shadow-lg rounded-2xl space-y-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Antrean Berkas</h4>
-              <p className="text-[10px] text-slate-500">{selectedFiles.length} file • {formatFileSize(totalSize)}</p>
+        <div className="bg-white border border-[#e5e5e5] rounded p-5 space-y-4">
+          {/* Queue header */}
+          <div className="flex items-center justify-between pb-3 border-b border-[#f5f5f5]">
+            <div>
+              <p className="section-heading text-[#525252]">Antrean Unggahan</p>
+              <p className="text-xs text-[#a3a3a3] mt-1">
+                {selectedFiles.length} file &nbsp;·&nbsp; {formatFileSize(totalSize)}
+              </p>
             </div>
             {!uploading && (
-              <button 
+              <button
                 onClick={() => setSelectedFiles([])}
-                className="text-[10px] text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+                className="text-xs text-[#a3a3a3] hover:text-[#DC2626] transition-colors cursor-pointer"
               >
                 Kosongkan
               </button>
             )}
           </div>
 
-          {/* List Files */}
-          <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1.5 scrollbar-thin">
+          {/* File list */}
+          <div className="space-y-1 max-h-[168px] overflow-y-auto scrollbar-thin">
             {selectedFiles.map((file, index) => (
-              <div 
+              <div
                 key={index}
-                className="p-2 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between text-xs"
+                className="flex items-center justify-between px-3 py-2.5 bg-[#fafafa] border border-[#f5f5f5] rounded text-xs"
               >
-                <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                  <span className="text-slate-500">📎</span>
-                  <div className="truncate font-medium text-slate-300" title={file.webkitRelativePath || file.name}>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-[#a3a3a3] shrink-0"><IconFile /></span>
+                  <span
+                    className="truncate text-[#525252] font-medium"
+                    title={file.webkitRelativePath || file.name}
+                  >
                     {file.webkitRelativePath || file.name}
-                  </div>
+                  </span>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-[10px] text-slate-500 font-medium">{formatFileSize(file.size)}</span>
+                <div className="flex items-center gap-3 shrink-0 ml-3">
+                  <span className="text-[#a3a3a3] tabular-nums">{formatFileSize(file.size)}</span>
                   {!uploading && (
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleRemoveFile(index) }}
-                      className="text-slate-500 hover:text-red-400 transition-colors text-sm font-bold cursor-pointer"
+                    <button
+                      onClick={e => { e.stopPropagation(); handleRemoveFile(index) }}
+                      className="text-[#d4d4d4] hover:text-[#DC2626] transition-colors font-bold text-sm cursor-pointer leading-none"
                       title="Hapus dari antrean"
                     >
                       &times;
@@ -381,44 +393,50 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
             ))}
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress section */}
           {uploading && (
-            <div className="space-y-3 bg-white/[0.02] border border-white/5 p-4 rounded-xl">
+            <div className="space-y-3 pt-1">
               {currentUploadingFile && (
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[11px] text-slate-300">
-                    <span className="truncate font-medium flex items-center gap-1.5 max-w-[70%]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-ping"></span>
-                      Mengunggah: <strong className="text-violet-400 font-normal">{currentUploadingFile}</strong>
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-violet-400">{currentFileProgress}%</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {/* Active indicator: small pulsing dot */}
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#DC2626] shrink-0 animate-pulse" />
+                      <span className="text-xs text-[#525252] truncate">
+                        {currentUploadingFile}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <span className="text-xs font-semibold text-[#111111] tabular-nums">
+                        {currentFileProgress}%
+                      </span>
                       <button
                         onClick={() => activeXhrRef.current?.abort()}
-                        className="px-2 py-0.5 text-[9px] font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-md transition-colors cursor-pointer"
-                        title="Batalkan unggahan"
+                        className="btn-danger text-[10px] py-0.5 px-2 cursor-pointer"
                       >
                         Batal
                       </button>
                     </div>
                   </div>
-                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden relative">
+                  {/* Current file progress */}
+                  <div className="h-[3px] bg-[#f5f5f5] rounded-sm overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full transition-all duration-150 ease-out shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+                      className="h-full bg-[#111111] transition-all duration-150"
                       style={{ width: `${currentFileProgress}%` }}
                     />
                   </div>
                 </div>
               )}
-              
-              <div className="space-y-1.5 pt-1.5 border-t border-white/5">
-                <div className="flex justify-between text-[10px] text-slate-400">
-                  <span>Total Progres Antrean</span>
-                  <span>{progress}%</span>
+
+              {/* Total queue progress */}
+              <div className="space-y-1.5 pt-2 border-t border-[#f5f5f5]">
+                <div className="flex justify-between">
+                  <span className="section-heading text-[#a3a3a3]">Total</span>
+                  <span className="text-[10px] font-semibold text-[#111111] tabular-nums">{progress}%</span>
                 </div>
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-[3px] bg-[#f5f5f5] rounded-sm overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-slate-400 to-slate-200 rounded-full transition-all duration-300"
+                    className="h-full bg-[#DC2626] transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -426,13 +444,15 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
             </div>
           )}
 
-          {/* Action Button */}
+          {/* Upload action */}
           {!uploading && (
             <button
               onClick={handleStartUpload}
-              className="w-full py-2.5 text-xs font-semibold cursor-pointer shadow-md bg-violet-600 hover:bg-violet-700 text-white rounded-xl transition-all flex items-center justify-center gap-2"
+              className="btn-primary w-full py-2.5 text-sm cursor-pointer gap-2 flex items-center justify-center"
             >
-              🚀 Mulai Upload ({selectedFiles.length} Berkas)
+              <IconUpload />
+              Mulai Upload &nbsp;
+              <span className="font-normal opacity-70">({selectedFiles.length} berkas)</span>
             </button>
           )}
         </div>

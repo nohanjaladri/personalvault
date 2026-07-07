@@ -4,6 +4,42 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import CreateNoteModal from './CreateNoteModal'
 
+const IconSearch = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M10 10L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+  </svg>
+)
+
+const IconMenu = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <rect y="3" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+    <rect y="7.25" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+    <rect y="11.5" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+  </svg>
+)
+
+const IconUpload = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+    <path d="M6 8V1M3 3.5L6 1l3 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M1 9v1.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+  </svg>
+)
+
+const IconFolder = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+    <path d="M1 3.5A1 1 0 0 1 2 2.5h2.586a1 1 0 0 1 .707.293L6 3.5h4a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3.5Z"
+      stroke="currentColor" strokeWidth="1.3"/>
+  </svg>
+)
+
+const IconNote = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="9" height="9" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M3.5 4h5M3.5 6h5M3.5 8h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+)
+
 export default function Topbar({ email }: { email: string }) {
   const [query, setQuery] = useState('')
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
@@ -15,7 +51,6 @@ export default function Topbar({ email }: { email: string }) {
   const router = useRouter()
   const supabase = createClient()
 
-  // Fetch username dari data profil
   useEffect(() => {
     supabase
       .from('profiles')
@@ -27,7 +62,6 @@ export default function Topbar({ email }: { email: string }) {
       })
   }, [email, supabase])
 
-  // Tutup dropdown jika klik di luar komponen
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -56,108 +90,124 @@ export default function Topbar({ email }: { email: string }) {
 
   return (
     <>
+      {/* Full-screen logout overlay */}
       {isLoggingOut && (
-        <div className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-center space-y-4">
-          <div className="relative w-12 h-12">
-            <div className="absolute inset-0 rounded-full border-2 border-white/5" />
-            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-violet-500 border-r-pink-500 animate-spinner-neon" />
-          </div>
-          <span className="text-xs text-slate-400 font-medium animate-pulse">Keluar dari sesi aman...</span>
+        <div className="fixed inset-0 z-[9999] bg-[#111111] flex flex-col items-center justify-center gap-4">
+          <div className="w-6 h-6 border-2 border-[#333] border-t-white rounded-full animate-spinner-neon" />
+          <span className="text-[10px] text-[#525252] font-semibold tracking-[0.16em] uppercase">
+            Keluar...
+          </span>
         </div>
       )}
-      <header className="h-16 bg-[rgba(10,8,22,0.55)] backdrop-blur-2xl border-b border-white/[0.06] flex items-center gap-3 px-4 md:px-7 shrink-0 relative z-40">
-      {/* Mobile Menu Button (Hamburger) */}
-      <button
-        onClick={() => window.dispatchEvent(new Event('toggle-sidebar'))}
-        className="md:hidden w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:bg-white/10 transition-colors cursor-pointer"
-        title="Buka menu navigasi"
-      >
-        ☰
-      </button>
 
-      <form onSubmit={handleSearch} className="flex-1 max-w-xs md:max-w-md flex items-center gap-2 bg-white/5 border border-white/[0.09] rounded-xl px-3 py-1.5 md:px-3.5 md:py-2 transition-all duration-200 focus-within:border-violet-500/50 focus-within:bg-violet-500/[0.08] focus-within:shadow-[0_0_0_3px_rgba(139,92,246,0.1)]">
-        <span className="text-slate-500 text-xs md:text-sm">🔍</span>
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Cari file..."
-          className="bg-transparent border-none outline-none text-slate-200 text-xs md:text-sm flex-1 placeholder:text-slate-600"
-        />
-      </form>
- 
-      <div className="ml-auto flex items-center gap-2">
+      <header className="h-14 bg-white border-b border-[#e5e5e5] flex items-center gap-3 px-4 md:px-6 shrink-0 relative z-40">
+        {/* Mobile menu toggle */}
         <button
-          onClick={() => document.getElementById('file-input')?.click()}
-          className="hidden md:flex btn-primary items-center gap-2 text-xs font-semibold py-2 px-3.5 shadow-[0_0_12px_rgba(139,92,246,0.3)] cursor-pointer"
+          onClick={() => window.dispatchEvent(new Event('toggle-sidebar'))}
+          className="md:hidden w-8 h-8 rounded flex items-center justify-center text-[#525252] hover:bg-[#f5f5f5] border border-[#e5e5e5] transition-colors cursor-pointer"
+          title="Buka menu navigasi"
+          aria-label="Menu"
         >
-          📄 Upload Berkas
+          <IconMenu />
         </button>
-        <button
-          onClick={() => document.getElementById('folder-input')?.click()}
-          className="hidden md:flex px-3.5 py-2 text-xs font-semibold rounded-xl bg-violet-600/15 hover:bg-violet-600/30 text-violet-400 border border-violet-500/20 hover:border-violet-500/40 transition-all items-center gap-1.5 cursor-pointer shadow-md"
+
+        {/* Search */}
+        <form
+          onSubmit={handleSearch}
+          className="flex-1 max-w-xs md:max-w-sm flex items-center gap-2 bg-[#f5f5f5] border border-[#e5e5e5] rounded px-3 py-2 transition-all focus-within:border-[#111111] focus-within:bg-white"
         >
-          📁 Upload Folder
-        </button>
-        <button
-          onClick={() => setIsNoteModalOpen(true)}
-          className="hidden md:flex px-3.5 py-2 text-xs font-semibold rounded-xl bg-pink-600/15 hover:bg-pink-600/30 text-pink-400 border border-pink-500/20 hover:border-pink-500/40 transition-all items-center gap-1.5 cursor-pointer shadow-md"
-        >
-          📝 Tulis Catatan
-        </button>
- 
-        {/* Dropdown Profil */}
-        <div className="relative" ref={dropdownRef}>
+          <span className="text-[#a3a3a3] shrink-0">
+            <IconSearch />
+          </span>
+          <input
+            type="search"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Cari file..."
+            className="bg-transparent border-none outline-none text-[#111111] text-sm flex-1 placeholder:text-[#a3a3a3] min-w-0"
+          />
+        </form>
+
+        {/* Right actions */}
+        <div className="ml-auto flex items-center gap-2">
           <button
-            onClick={() => setIsDropdownOpen(prev => !prev)}
-            className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-sm font-bold cursor-pointer shadow-[0_0_12px_rgba(139,92,246,0.4)] hover:scale-105 transition-all focus:ring-2 focus:ring-violet-500/50"
+            onClick={() => document.getElementById('file-input')?.click()}
+            className="hidden md:flex btn-primary items-center gap-1.5 text-xs py-2 px-3 cursor-pointer"
           >
-            {email.charAt(0).toUpperCase()}
+            <IconUpload />
+            Upload
+          </button>
+          <button
+            onClick={() => document.getElementById('folder-input')?.click()}
+            className="hidden md:flex btn-ghost items-center gap-1.5 text-xs py-2 px-3 cursor-pointer"
+          >
+            <IconFolder />
+            Folder
+          </button>
+          <button
+            onClick={() => setIsNoteModalOpen(true)}
+            className="hidden md:flex btn-ghost items-center gap-1.5 text-xs py-2 px-3 cursor-pointer"
+          >
+            <IconNote />
+            Catatan
           </button>
 
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-2.5 w-56 rounded-2xl bg-[#0e0c1a]/95 backdrop-blur-3xl border border-white/[0.08] shadow-[0_12px_32px_rgba(0,0,0,0.6),0_0_24px_rgba(139,92,246,0.06)] py-2.5 overflow-hidden origin-top-right">
-              {/* Header Info */}
-              <div className="px-4 py-2 border-b border-white/[0.06] mb-1.5 pb-2.5">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Pengguna</p>
-                <p className="text-sm font-bold text-slate-200 truncate mt-1">@{username || 'user'}</p>
-                <p className="text-[10px] text-slate-400 truncate mt-0.5" title={email}>{email}</p>
+          {/* Profile dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(prev => !prev)}
+              className="w-8 h-8 rounded bg-[#111111] text-white flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-[#333333] transition-colors shrink-0"
+              aria-label="Profil"
+              aria-expanded={isDropdownOpen}
+            >
+              {email.charAt(0).toUpperCase()}
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-52 bg-white border border-[#e5e5e5] rounded shadow-[0_4px_12px_rgba(0,0,0,0.08)] py-1 z-50 animate-fade-in">
+                {/* User info */}
+                <div className="px-4 py-3 border-b border-[#f5f5f5]">
+                  <p className="section-heading text-[#a3a3a3]">Pengguna</p>
+                  <p className="text-sm font-bold text-[#111111] truncate mt-1.5">
+                    @{username || 'user'}
+                  </p>
+                  <p className="text-[11px] text-[#737373] truncate mt-0.5" title={email}>
+                    {email}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => { router.push('/dashboard'); setIsDropdownOpen(false) }}
+                  className="w-full text-left px-4 py-2.5 text-xs text-[#525252] hover:bg-[#f5f5f5] hover:text-[#111111] transition-colors cursor-pointer"
+                >
+                  Beranda Brankas
+                </button>
+                <button
+                  onClick={() => { router.push('/settings'); setIsDropdownOpen(false) }}
+                  className="w-full text-left px-4 py-2.5 text-xs text-[#525252] hover:bg-[#f5f5f5] hover:text-[#111111] transition-colors cursor-pointer"
+                >
+                  Pengaturan Profil
+                </button>
+
+                <div className="h-px bg-[#f5f5f5] my-1" />
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2.5 text-xs text-[#DC2626] hover:bg-[#fef2f2] transition-colors cursor-pointer font-medium"
+                >
+                  Keluar
+                </button>
               </div>
-
-              {/* Menu Navigasi */}
-              <button
-                onClick={() => { router.push('/dashboard'); setIsDropdownOpen(false) }}
-                className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-white/[0.04] hover:text-violet-400 transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                📁 Beranda Brankas
-              </button>
-              <button
-                onClick={() => { router.push('/settings'); setIsDropdownOpen(false) }}
-                className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-white/[0.04] hover:text-violet-400 transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                ⚙️ Pengaturan Profil
-              </button>
-
-              <div className="h-[1px] bg-white/[0.06] my-1.5" />
-
-              {/* Tombol Keluar */}
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2 font-medium cursor-pointer"
-              >
-                🚪 Keluar (Log Out)
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      <CreateNoteModal
-        isOpen={isNoteModalOpen}
-        onClose={() => setIsNoteModalOpen(false)}
-        onUploadComplete={handleUploadComplete}
-      />
-    </header>
+        <CreateNoteModal
+          isOpen={isNoteModalOpen}
+          onClose={() => setIsNoteModalOpen(false)}
+          onUploadComplete={handleUploadComplete}
+        />
+      </header>
     </>
   )
 }

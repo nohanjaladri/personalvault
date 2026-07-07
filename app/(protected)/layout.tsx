@@ -19,7 +19,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
         <Sidebar usedBytes={usedBytes} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Topbar email={user.email ?? ''} />
-          <main className="flex-1 overflow-y-auto p-4 md:p-7 scrollbar-thin">
+          <main className="flex-1 overflow-y-auto p-6 md:p-8 scrollbar-thin">
             {children}
           </main>
         </div>

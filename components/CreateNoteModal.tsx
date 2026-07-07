@@ -30,7 +30,7 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) {
-      showToast('Judul tidak boleh kosong ⚠️')
+      showToast('Judul tidak boleh kosong')
       return
     }
 
@@ -55,7 +55,7 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
       })
 
       if (!urlRes.ok) {
-        showToast('Gagal mendapatkan upload URL ❌')
+        showToast('Gagal mendapatkan upload URL')
         setUploading(false)
         return
       }
@@ -63,25 +63,22 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
       const { uploadUrl, r2Key } = await urlRes.json()
       setProgress(30)
 
-      // 2. Upload file to Supabase Storage with XHR for accurate progress tracking
+      // 2. Upload file with XHR for progress tracking
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         xhr.open('PUT', uploadUrl)
         xhr.setRequestHeader('Content-Type', file.type)
-        
+
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             const pct = Math.round((e.loaded / e.total) * 50) + 30
             setProgress(pct)
           }
         }
-        
+
         xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve()
-          } else {
-            reject(new Error('Gagal mengunggah'))
-          }
+          if (xhr.status >= 200 && xhr.status < 300) resolve()
+          else reject(new Error('Gagal mengunggah'))
         }
         xhr.onerror = () => reject(new Error('Koneksi bermasalah'))
         xhr.send(file)
@@ -102,23 +99,22 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
       })
 
       if (!metaRes.ok) {
-        showToast('Gagal menyimpan metadata berkas ❌')
+        showToast('Gagal menyimpan metadata berkas')
         setUploading(false)
         return
       }
 
       setProgress(100)
-      showToast(`Catatan "${file.name}" berhasil disimpan ✨`)
-      
-      window.dispatchEvent(new CustomEvent('session-file-uploaded', { 
-        detail: { name: file.name, size: file.size, mimeType: file.type } 
+      showToast(`Catatan "${file.name}" berhasil disimpan`)
+
+      window.dispatchEvent(new CustomEvent('session-file-uploaded', {
+        detail: { name: file.name, size: file.size, mimeType: file.type }
       }))
 
-      // Reset form
       setTitle('')
       setContent('')
       setFormatIndex(0)
-      
+
       setTimeout(() => {
         setUploading(false)
         setProgress(0)
@@ -128,21 +124,21 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
 
     } catch (err: any) {
       console.error(err)
-      showToast('Terjadi kesalahan saat menyimpan ❌')
+      showToast('Terjadi kesalahan saat menyimpan')
       setUploading(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-lg glass-card p-6 space-y-4 shadow-2xl border border-white/10 rounded-2xl">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <span>📝</span> Buat Catatan / Kode Baru
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+      <div className="w-full max-w-lg bg-white border border-[#e5e5e5] rounded shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#f5f5f5] pb-4">
+          <h2 className="text-base font-bold text-[#111111]">
+            Buat Catatan / Kode Baru
           </h2>
-          <button 
-            onClick={onClose} 
-            className="text-slate-400 hover:text-slate-100 transition-colors text-xl font-bold"
+          <button
+            onClick={onClose}
+            className="text-[#a3a3a3] hover:text-[#111111] transition-colors text-xl font-bold leading-none cursor-pointer"
             disabled={uploading}
           >
             &times;
@@ -151,7 +147,7 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-400 block mb-1.5">Judul (Nama File)</label>
+            <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Judul (Nama File)</label>
             <input
               type="text"
               required
@@ -159,18 +155,18 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Contoh: catatan-rapat, script-helper"
-              className="input-field w-full"
+              className="input-field"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-400 block mb-1.5">Format Penyimpanan</label>
+              <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Format</label>
               <select
                 disabled={uploading}
                 value={formatIndex}
                 onChange={(e) => setFormatIndex(Number(e.target.value))}
-                className="input-field w-full cursor-pointer bg-slate-900 text-slate-200"
+                className="input-field cursor-pointer"
               >
                 {FORMATS.map((format, idx) => (
                   <option key={format.ext} value={idx}>
@@ -180,34 +176,34 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
               </select>
             </div>
             <div className="flex flex-col justify-end">
-              <span className="text-[10px] text-slate-500 leading-normal mb-1">
-                *Ekstensi file otomatis ditambahkan di akhir nama jika belum ada.
+              <span className="text-[10px] text-[#a3a3a3] leading-normal">
+                Ekstensi file otomatis ditambahkan jika belum ada.
               </span>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-400 block mb-1.5">Isi Catatan / Kode</label>
+            <label className="text-xs font-semibold text-[#525252] block mb-2 uppercase tracking-wider">Isi Catatan / Kode</label>
             <textarea
               required
               disabled={uploading}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Ketik catatan, paste tautan (link), atau tempelkan kode Anda di sini..."
+              placeholder="Ketik catatan, paste tautan, atau tempelkan kode di sini..."
               rows={8}
-              className="input-field w-full font-mono text-sm leading-relaxed"
+              className="input-field font-mono text-sm leading-relaxed"
             />
           </div>
 
           {uploading && (
             <div className="space-y-1">
-              <div className="flex justify-between text-xs text-slate-400">
+              <div className="flex justify-between text-xs text-[#737373]">
                 <span>Sedang menyimpan...</span>
                 <span>{progress}%</span>
               </div>
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-1 bg-[#f5f5f5] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(139,92,246,0.6)]"
+                  className="h-full bg-[#111111] transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -219,7 +215,7 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
               type="button"
               onClick={onClose}
               disabled={uploading}
-              className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors"
+              className="btn-ghost px-4 py-2 text-sm"
             >
               Batal
             </button>
@@ -228,7 +224,7 @@ export default function CreateNoteModal({ isOpen, onClose, onUploadComplete }: P
               disabled={uploading}
               className="btn-primary px-5 py-2 text-sm"
             >
-              Simpan ke Vault
+              {uploading ? 'Menyimpan...' : 'Simpan ke Vault'}
             </button>
           </div>
         </form>

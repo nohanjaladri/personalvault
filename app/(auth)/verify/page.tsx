@@ -45,40 +45,68 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative z-10 p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-2xl mx-auto mb-4 shadow-[0_0_24px_rgba(139,92,246,0.5)]">🔑</div>
-          <h1 className="text-xl font-bold text-slate-100">Verifikasi 2FA</h1>
-          <p className="text-slate-500 text-sm mt-1">Masukkan kode dari Google Authenticator</p>
-        </div>
-        <form onSubmit={handleVerify} className="glass-card p-6 space-y-4">
-          {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</div>}
-          {cooldown > 0 && <div className="text-amber-400 text-sm bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">Terlalu banyak percobaan. Tunggu {cooldown} detik.</div>}
-          <div>
-            <label className="text-xs font-medium text-slate-400 block mb-1.5">Kode 6 digit</label>
-            <input
-              type="text" inputMode="numeric" pattern="\d{6}" maxLength={6}
-              value={code} onChange={e => setCode(e.target.value)} required
-              className="input-field text-center text-2xl tracking-[0.5em]"
-              placeholder="000000" autoFocus
-            />
+    <div className="min-h-screen bg-[#fafafa] flex flex-col">
+      <div className="h-px bg-[#DC2626] w-full shrink-0" />
+
+      <div className="flex flex-1 items-center justify-center p-8">
+        <div className="w-full max-w-sm">
+          {/* Header */}
+          <div className="mb-10">
+            <span className="text-[10px] font-bold text-[#DC2626] uppercase tracking-[0.2em] block mb-3">
+              Vault
+            </span>
+            <h1 className="text-2xl font-black text-[#111111] leading-tight tracking-tight">
+              Verifikasi 2FA
+            </h1>
+            <p className="text-sm text-[#737373] mt-2">
+              Masukkan kode 6 digit dari Google Authenticator.
+            </p>
           </div>
-          <button 
-            type="submit" 
-            disabled={loading || code.length !== 6 || cooldown > 0} 
-            className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
-          >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 rounded-full border border-white/20 border-t-white animate-spin" />
-                <span>Memverifikasi...</span>
-              </>
-            ) : (
-              'Masuk ke Vault'
+
+          <form onSubmit={handleVerify} className="space-y-5">
+            {error && (
+              <div className="text-sm text-[#DC2626] bg-[#fef2f2] border border-[#fca5a5] rounded px-4 py-3">
+                {error}
+              </div>
             )}
-          </button>
-        </form>
+            {cooldown > 0 && (
+              <div className="text-sm text-[#525252] bg-[#f5f5f5] border border-[#e5e5e5] rounded px-4 py-3">
+                Terlalu banyak percobaan. Tunggu{' '}
+                <strong className="text-[#111111]">{cooldown}</strong> detik.
+              </div>
+            )}
+
+            <div>
+              <label className="label" htmlFor="totp-code">Kode 6 digit</label>
+              <input
+                id="totp-code"
+                type="text"
+                inputMode="numeric"
+                pattern="\d{6}"
+                maxLength={6}
+                value={code}
+                onChange={e => setCode(e.target.value)}
+                required
+                className="input-field text-center text-2xl tracking-[0.5em] font-mono"
+                placeholder="000000"
+                autoFocus
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || code.length !== 6 || cooldown > 0}
+              className="btn-primary w-full py-3 text-sm cursor-pointer"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spinner-neon" />
+                  Memverifikasi...
+                </span>
+              ) : 'Masuk ke Vault'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

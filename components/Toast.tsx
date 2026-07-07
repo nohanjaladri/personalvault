@@ -23,12 +23,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map(t => (
           <div
             key={t.id}
-            className="flex items-center gap-3 bg-[rgba(14,10,30,0.95)] border border-violet-500/40
-                       rounded-xl px-5 py-3 text-sm backdrop-blur-2xl
-                       shadow-[0_8px_32px_rgba(0,0,0,0.5),0_0_20px_rgba(139,92,246,0.2)]
-                       animate-[slideIn_0.4s_cubic-bezier(0.34,1.56,0.64,1)]"
+            className="flex items-center gap-3 bg-[#111111] border border-[#333333] rounded px-4 py-3 text-sm text-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] animate-[slideIn_0.3s_ease-out]"
           >
-            <div className="w-2 h-2 rounded-full bg-gradient-to-b from-violet-500 to-pink-500 animate-pulse shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-sm bg-[#DC2626] shrink-0" />
             {t.message}
           </div>
         ))}
