@@ -79,7 +79,7 @@ function ImageCardPreview({ r2Key, driveFileId, name }: { r2Key?: string; driveF
         src={url}
         alt={name}
         loading="lazy"
-        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
       />
     </div>
   )
@@ -89,9 +89,9 @@ function FileCardPlaceholder({ category }: { category: string }) {
   const emoji = CATEGORY_EMOJI[category as keyof typeof CATEGORY_EMOJI] ?? '□'
 
   return (
-    <div className="w-full aspect-[4/3] bg-[var(--surface-2)] border-b border-[var(--border)] flex flex-col items-center justify-center gap-2">
-      <span className="text-3xl text-[var(--text-4)]">{emoji}</span>
-      <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--text-4)]">{category}</span>
+    <div className="w-full aspect-[4/3] bg-[var(--surface-2)] border-b border-[var(--border)] flex flex-col items-center justify-center gap-2 overflow-hidden">
+      <span className="text-3xl text-[var(--text-4)] transition-transform duration-300 ease-out group-hover:scale-115">{emoji}</span>
+      <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--text-4)] transition-all duration-300 ease-out group-hover:tracking-[0.16em]">{category}</span>
     </div>
   )
 }
@@ -166,7 +166,7 @@ export default function FileGrid({ files, onRefresh }: { files: FileRow[]; onRef
       {files.map(f => (
         <div
           key={f.id}
-          className="group relative bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--text-1)] rounded transition-all duration-150 overflow-hidden flex flex-col hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
+          className="group relative bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--text-1)] rounded transition-all duration-300 ease-out overflow-hidden flex flex-col hover:shadow-[0_12px_24px_rgba(0,0,0,0.12)] hover:-translate-y-1.5"
         >
           <Link href={`/file/${f.id}`} className="block w-full">
             {f.category === 'photo' ? (

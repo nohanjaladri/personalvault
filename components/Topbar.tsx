@@ -140,7 +140,7 @@ export default function Topbar({ email }: { email: string }) {
         {/* Search */}
         <form
           onSubmit={handleSearch}
-          className="flex-1 max-w-xs md:max-w-sm flex items-center gap-2 rounded px-3 py-2 transition-all duration-150"
+          className="flex-1 max-w-[180px] focus-within:max-w-[280px] md:max-w-xs md:focus-within:max-w-sm flex items-center gap-2 rounded px-3 py-2 transition-all duration-300 ease-out"
           style={{
             background: 'var(--surface-2)',
             border: '1px solid var(--border)',

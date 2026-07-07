@@ -28,7 +28,7 @@ export default function CategoryCards({ stats }: { stats: CategoryStat[] }) {
           <Link
             key={cat}
             href={`/category/${cat}`}
-            className="group file-card flex flex-col gap-3 p-4"
+            className="group file-card flex flex-col gap-3 p-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)]"
           >
             {/* Icon char */}
             <span className="text-[13px] font-mono text-[#a3a3a3] group-hover:text-[var(--text-1)] transition-colors select-none">
@@ -49,7 +49,7 @@ export default function CategoryCards({ stats }: { stats: CategoryStat[] }) {
             </div>
 
             {/* Red accent line on bottom: shows only on hover */}
-            <div className="h-px bg-transparent group-hover:bg-[#DC2626] transition-colors mt-auto" />
+            <div className="h-[2px] bg-[#DC2626] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-left mt-auto" />
           </Link>
         )
       })}

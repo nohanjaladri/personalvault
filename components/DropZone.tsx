@@ -305,7 +305,7 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
 
         {/* Icon */}
         <div className="flex justify-center mb-4">
-          <div className={`w-10 h-10 rounded flex items-center justify-center border transition-colors ${isDragging ? 'bg-[var(--text-1)] border-[var(--text-1)] text-[var(--bg)]' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-3)]'}`}>
+          <div className={`w-10 h-10 rounded flex items-center justify-center border transition-all duration-300 ${isDragging ? 'bg-[var(--text-1)] border-[var(--text-1)] text-[var(--bg)] scale-110 animate-bounce' : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-3)]'}`}>
             <IconUpload />
           </div>
         </div>
