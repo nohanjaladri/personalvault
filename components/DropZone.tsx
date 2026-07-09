@@ -90,9 +90,12 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         activeXhrRef.current = xhr
-        xhr.open('POST', uploadUrl)
+        xhr.open('PUT', '/api/gdrive/upload')
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
-        xhr.setRequestHeader('X-File-Name', encodeURIComponent(displayName))
+        xhr.setRequestHeader('x-upload-url', uploadUrl)
+        if (file.size > 0) {
+          xhr.setRequestHeader('Content-Range', `bytes 0-${file.size - 1}/${file.size}`)
+        }
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
@@ -102,11 +105,11 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const uploadData = JSON.parse(xhr.responseText)
-              finalDriveFileId = uploadData.driveFileId
+              finalDriveFileId = uploadData.id
             } catch { /* ignore */ }
             resolve()
           } else {
-            reject(new Error(`Gagal mengunggah ${displayName} ke Google Drive`))
+            reject(new Error(`Gagal mengunggah ${displayName} ke Google Drive (${xhr.status})`))
           }
         }
         xhr.onerror = () => { activeXhrRef.current = null; reject(new Error(`Koneksi error saat mengunggah ${displayName}`)) }

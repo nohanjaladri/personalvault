@@ -2,8 +2,8 @@ import { google } from 'googleapis'
 import { getOAuth2Client } from './oauth'
 import { createClient } from './supabase/server'
 
-// Dapatkan OAuth2Client yang sudah diisi dengan token aktif pengguna dari DB
-export async function getAuthorizedGoogleClient(userId: string) {
+// Dapatkan OAuth2Client dan Google Drive client yang di-authorize
+export async function getAuthorizedGoogleClientAndAuth(userId: string) {
   const supabase = await createClient()
   
   const { data: tokenData, error } = await supabase
@@ -49,5 +49,12 @@ export async function getAuthorizedGoogleClient(userId: string) {
     }
   }
 
-  return google.drive({ version: 'v3', auth: oauth2Client })
+  const drive = google.drive({ version: 'v3', auth: oauth2Client })
+  return { drive, oauth2Client }
+}
+
+// Dapatkan Google Drive client yang sudah di-authorize
+export async function getAuthorizedGoogleClient(userId: string) {
+  const { drive } = await getAuthorizedGoogleClientAndAuth(userId)
+  return drive
 }

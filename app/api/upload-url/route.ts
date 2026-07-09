@@ -4,6 +4,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { sanitizeFilename } from '@/lib/utils/security'
 import { detectCategory } from '@/lib/utils/category'
+import { getAuthorizedGoogleClientAndAuth } from '@/lib/gdrive'
+
+const CATEGORY_SUBFOLDERS: Record<string, string> = {
+  photo: 'Photos',
+  video: 'Videos',
+  audio: 'Audio',
+  document: 'Documents',
+  archive: 'Archives',
+  other: 'Others'
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -24,24 +34,98 @@ export async function POST(request: NextRequest) {
     const isGDrive = category !== 'code'
 
     if (isGDrive) {
-      // Periksa apakah user telah mengoneksikan Google Drive
-      const { data: gTokens } = await supabase
-        .from('user_google_tokens')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (!gTokens) {
+      // Dapatkan Google Drive client dan auth token
+      let drive, oauth2Client
+      try {
+        const authData = await getAuthorizedGoogleClientAndAuth(user.id)
+        drive = authData.drive
+        oauth2Client = authData.oauth2Client
+      } catch (authErr: any) {
         return NextResponse.json({ 
-          error: 'Google Drive belum terhubung. Silakan hubungkan Google Drive di halaman Pengaturan terlebih dahulu untuk mengunggah foto, dokumen, dan berkas lainnya.' 
+          error: 'Google Drive belum terhubung atau koneksi kedaluwarsa. Silakan hubungkan Google Drive di halaman Pengaturan terlebih dahulu.' 
         }, { status: 400 })
       }
 
-      // Beri tahu klien bahwa file ini akan dialirkan langsung ke Google Drive
+      // 1. Cari atau buat folder induk "PersonalVault" di Google Drive user
+      let mainFolderId = ''
+      const listRes = await drive.files.list({
+        q: "name = 'PersonalVault' and mimeType = 'application/vnd.google-apps.folder' and trashed = false",
+        fields: 'files(id)',
+        spaces: 'drive'
+      })
+
+      if (listRes.data.files && listRes.data.files.length > 0) {
+        mainFolderId = listRes.data.files[0].id || ''
+      } else {
+        const folderMetadata = {
+          name: 'PersonalVault',
+          mimeType: 'application/vnd.google-apps.folder'
+        }
+        const folder = await drive.files.create({
+          requestBody: folderMetadata,
+          fields: 'id'
+        })
+        mainFolderId = folder.data.id || ''
+      }
+
+      // 2. Tentukan nama subfolder berdasarkan kategori file
+      const subfolderName = CATEGORY_SUBFOLDERS[category] || 'Others'
+
+      // 3. Cari atau buat subfolder kategori di dalam "PersonalVault"
+      let targetFolderId = ''
+      const subfolderListRes = await drive.files.list({
+        q: `name = '${subfolderName}' and '${mainFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+        fields: 'files(id)',
+        spaces: 'drive'
+      })
+
+      if (subfolderListRes.data.files && subfolderListRes.data.files.length > 0) {
+        targetFolderId = subfolderListRes.data.files[0].id || ''
+      } else {
+        const subfolderMetadata = {
+          name: subfolderName,
+          mimeType: 'application/vnd.google-apps.folder',
+          parents: [mainFolderId]
+        }
+        const subfolder = await drive.files.create({
+          requestBody: subfolderMetadata,
+          fields: 'id'
+        })
+        targetFolderId = subfolder.data.id || ''
+      }
+
+      // 4. Inisialisasi Resumable Upload dengan Google Drive API
+      const authHeaders = await oauth2Client.getRequestHeaders()
+      const originHeader = request.headers.get('origin')
+      const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
+        method: 'POST',
+        headers: {
+          ...authHeaders,
+          'Content-Type': 'application/json; charset=UTF-8',
+          'X-Upload-Content-Type': contentType,
+          ...(fileSize > 0 ? { 'X-Upload-Content-Length': fileSize.toString() } : {}),
+          ...(originHeader ? { 'Origin': originHeader } : {})
+        },
+        body: JSON.stringify({
+          name: cleanName,
+          parents: targetFolderId ? [targetFolderId] : []
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Gagal menginisialisasi sesi Google Drive: ${errorText}`)
+      }
+
+      const uploadUrl = response.headers.get('location')
+      if (!uploadUrl) {
+        throw new Error('Gagal mendapatkan session upload URL dari Google Drive')
+      }
+
       return NextResponse.json({ 
         isGDrive: true, 
         fileName: cleanName,
-        uploadUrl: '/api/gdrive/upload' // Endpoint internal untuk menerima stream file
+        uploadUrl
       })
     }
 
