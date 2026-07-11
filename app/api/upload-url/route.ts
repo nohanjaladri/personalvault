@@ -97,7 +97,15 @@ export async function POST(request: NextRequest) {
       // 4. Inisialisasi Resumable Upload dengan Google Drive API
       const authHeaders = await oauth2Client.getRequestHeaders()
       const originHeader = request.headers.get('origin')
-      const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
+      
+      console.log('[Upload URL] Initializing GDrive resumable upload', {
+        fileName: cleanName,
+        contentType,
+        fileSize,
+        targetFolderId
+      })
+      
+      const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true', {
         method: 'POST',
         headers: {
           ...authHeaders,
@@ -114,13 +122,21 @@ export async function POST(request: NextRequest) {
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`Gagal menginisialisasi sesi Google Drive: ${errorText}`)
+        console.error('[Upload URL] GDrive init failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText.substring(0, 500)
+        })
+        throw new Error(`Gagal menginisialisasi sesi Google Drive (${response.status}): ${errorText.substring(0, 200)}`)
       }
 
       const uploadUrl = response.headers.get('location')
       if (!uploadUrl) {
+        console.error('[Upload URL] No location header in GDrive response')
         throw new Error('Gagal mendapatkan session upload URL dari Google Drive')
       }
+      
+      console.log('[Upload URL] GDrive resumable session created successfully')
 
       return NextResponse.json({ 
         isGDrive: true, 

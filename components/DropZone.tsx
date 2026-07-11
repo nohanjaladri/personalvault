@@ -66,6 +66,11 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
 
   const uploadFile = async (file: File, onProgress: (pct: number) => void) => {
     const displayName = file.webkitRelativePath || file.name
+    
+    console.log('[Upload] Starting upload for:', displayName, {
+      type: file.type,
+      size: file.size
+    })
 
     const urlRes = await fetch('/api/upload-url', {
       method: 'POST',
@@ -79,9 +84,16 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
 
     if (!urlRes.ok) {
       const errData = await urlRes.json().catch(() => ({}))
+      console.error('[Upload] Failed to get upload URL:', errData)
       throw new Error(errData.error || `Gagal mendapatkan upload URL untuk ${displayName}`)
     }
     const { uploadUrl, r2Key, isGDrive, driveFileId: directId } = await urlRes.json()
+    
+    console.log('[Upload] Got upload URL response:', { 
+      isGDrive, 
+      hasUploadUrl: !!uploadUrl,
+      uploadUrlPrefix: uploadUrl?.substring(0, 50)
+    })
 
     let finalDriveFileId = directId
     let finalR2Key = r2Key
@@ -93,7 +105,12 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
         xhr.open('PUT', '/api/gdrive/upload')
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
         xhr.setRequestHeader('x-upload-url', uploadUrl)
-        if (file.size > 0) {
+        
+        // Content-Range: untuk file kosong, gunakan format khusus
+        // Untuk file dengan konten, gunakan format standar
+        if (file.size === 0) {
+          xhr.setRequestHeader('Content-Range', 'bytes */0')
+        } else {
           xhr.setRequestHeader('Content-Range', `bytes 0-${file.size - 1}/${file.size}`)
         }
 
@@ -106,10 +123,15 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
             try {
               const uploadData = JSON.parse(xhr.responseText)
               finalDriveFileId = uploadData.id
-            } catch { /* ignore */ }
+              console.log('[Upload] GDrive file ID:', uploadData.id)
+            } catch (e) { 
+              console.error('[Upload] Failed to parse GDrive response:', e)
+            }
             resolve()
           } else {
-            reject(new Error(`Gagal mengunggah ${displayName} ke Google Drive (${xhr.status})`))
+            const errorMsg = xhr.responseText || `Status ${xhr.status}`
+            console.error('[Upload] GDrive error:', errorMsg)
+            reject(new Error(`Gagal mengunggah ${displayName} ke Google Drive: ${errorMsg.substring(0, 100)}`))
           }
         }
         xhr.onerror = () => { activeXhrRef.current = null; reject(new Error(`Koneksi error saat mengunggah ${displayName}`)) }
