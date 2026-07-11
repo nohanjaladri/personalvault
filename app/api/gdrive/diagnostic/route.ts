@@ -112,11 +112,11 @@ export async function GET() {
 
     // Step 5: Test resumable upload initialization
     try {
-      const authHeaders = await oauth2Client.getRequestHeaders()
+      const accessToken = await oauth2Client.getAccessToken()
       const testResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true', {
         method: 'POST',
         headers: {
-          ...authHeaders,
+          'Authorization': `Bearer ${accessToken.token}`,
           'Content-Type': 'application/json; charset=UTF-8',
           'X-Upload-Content-Type': 'text/plain',
           'X-Upload-Content-Length': '5'

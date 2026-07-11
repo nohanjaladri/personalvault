@@ -257,6 +257,7 @@ export default function SettingsPage() {
                   onChange={e => setNewPassword(e.target.value)}
                   className="input-field text-sm"
                   placeholder="Min. 8 karakter"
+                  autoComplete="new-password"
                 />
               </div>
 
@@ -270,6 +271,7 @@ export default function SettingsPage() {
                   onChange={e => setConfirmPassword(e.target.value)}
                   className="input-field text-sm"
                   placeholder="Ulangi password baru"
+                  autoComplete="new-password"
                 />
               </div>
 

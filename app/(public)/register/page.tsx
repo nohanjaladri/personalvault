@@ -298,7 +298,7 @@ export default function RegisterPage() {
                   required
                   autoComplete="new-password"
                   className="input-field transition-all duration-150 focus:scale-[1.01]"
-                  placeholder="Ulangi password"
+                  placeholder="Min. 8 karakter"
                 />
               </div>
 

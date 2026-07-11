@@ -95,7 +95,15 @@ export async function POST(request: NextRequest) {
       }
 
       // 4. Inisialisasi Resumable Upload dengan Google Drive API
-      const authHeaders = await oauth2Client.getRequestHeaders()
+      // Force refresh token - getAccessToken() auto-refreshes if expired
+      const accessToken = await oauth2Client.getAccessToken()
+      if (!accessToken.token) {
+        throw new Error('Gagal mendapatkan access token Google Drive')
+      }
+      
+      console.log('[Upload URL] GDrive token obtained, expires:', 
+        oauth2Client.credentials.expiry_date ? new Date(oauth2Client.credentials.expiry_date).toISOString() : 'unknown')
+      
       const originHeader = request.headers.get('origin')
       
       console.log('[Upload URL] Initializing GDrive resumable upload', {
@@ -108,7 +116,7 @@ export async function POST(request: NextRequest) {
       const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true', {
         method: 'POST',
         headers: {
-          ...authHeaders,
+          'Authorization': `Bearer ${accessToken.token}`,
           'Content-Type': 'application/json; charset=UTF-8',
           'X-Upload-Content-Type': contentType,
           ...(fileSize > 0 ? { 'X-Upload-Content-Length': fileSize.toString() } : {}),
