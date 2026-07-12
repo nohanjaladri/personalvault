@@ -170,8 +170,7 @@ function VideoCardPreview({ thumbnailKey, thumbnailUrl, driveFileId, name }: { t
       </div>
     </div>
   )
-
-
+}
 function FileCardPlaceholder({ category }: { category: string }) {
   const emoji = CATEGORY_EMOJI[category as keyof typeof CATEGORY_EMOJI] ?? '□'
 

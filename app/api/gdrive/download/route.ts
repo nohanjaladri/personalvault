@@ -72,8 +72,15 @@ export async function GET(request: NextRequest) {
         }
       } catch (thumbErr) {
         console.error('[GDrive] Failed to get thumbnailLink:', thumbErr)
-        // Fallback ke video placeholder
-        return NextResponse.redirect(new URL('/icons/video-placeholder.jpg', request.url))
+        // Fallback: Return empty transparent 1x1 GIF
+        const emptyGif = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')
+        return new NextResponse(emptyGif, {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/gif',
+            'Cache-Control': 'public, max-age=86400'
+          }
+        })
       }
     }
 
