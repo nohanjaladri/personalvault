@@ -3,7 +3,6 @@ import { useCallback, useRef, useState } from 'react'
 import { useToast } from './Toast'
 import JSZip from 'jszip'
 import { captureVideoThumbnail } from '@/lib/video-thumbnail-client'
-import { captureVideoThumbnail } from '@/lib/video-thumbnail-client'
 
 /* ── Compress folder to ZIP (client-side) ──────────────────── */
 const compressFolderToZip = async (files: File[]): Promise<File> => {
