@@ -2,6 +2,8 @@
 import { useCallback, useRef, useState } from 'react'
 import { useToast } from './Toast'
 import JSZip from 'jszip'
+import { captureVideoThumbnail } from '@/lib/video-thumbnail-client'
+import { captureVideoThumbnail } from '@/lib/video-thumbnail-client'
 
 /* ── Compress folder to ZIP (client-side) ──────────────────── */
 const compressFolderToZip = async (files: File[]): Promise<File> => {
@@ -174,6 +176,43 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
       }),
     })
     if (!metaRes.ok) throw new Error(`Gagal menyimpan metadata untuk ${displayName}`)
+    const savedFileMeta = await metaRes.json()
+
+    // Jika video, generate & upload thumbnail background process
+    if (file.type?.startsWith('video/')) {
+      captureVideoThumbnail(file, 1.5).then(async (thumbBlob) => {
+        if (!thumbBlob) return
+        
+        try {
+          const thumbRes = await fetch('/api/upload-thumbnail-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileId: savedFileMeta.id, contentType: 'image/jpeg' })
+          })
+          
+          if (!thumbRes.ok) return
+          const { uploadUrl, thumbnailKey } = await thumbRes.json()
+          
+          // Upload thumbnail blob ke storage (R2/S3)
+          await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'image/jpeg' },
+            body: thumbBlob
+          })
+          
+          // Update database
+          await fetch('/api/files/update-thumbnail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileId: savedFileMeta.id, thumbnailKey })
+          })
+        } catch (err) {
+          console.error('[Upload] Failed to generate/upload video thumbnail:', err)
+        }
+      }).catch(err => {
+         console.error('[Upload] Error capturing thumbnail:', err)
+      })
+    }
 
     window.dispatchEvent(new CustomEvent('session-file-uploaded', {
       detail: { name: displayName, size: file.size, mimeType: file.type || 'application/octet-stream' },

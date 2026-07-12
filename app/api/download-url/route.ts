@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   
   try {
-    const { r2Key, driveFileId, isThumbnail } = await request.json()
+    const { r2Key, driveFileId, isThumbnail, isVideoThumbnail } = await request.json()
     
     if (!r2Key && !driveFileId) {
       return NextResponse.json({ error: 'r2Key or driveFileId is required' }, { status: 400 })
@@ -27,8 +27,10 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Buat signed download URL internal yang mengarah ke stream controller Google Drive kita
-      const internalUrl = `/api/gdrive/download?id=${driveFileId}${isThumbnail ? '&thumbnail=true' : ''}`
+      // Untuk video thumbnail dari Google Drive, kita perlu gunakan drive files.get dengan alt=media
+      // Tapi Drive API tidak punya thumbnail generation langsung
+      // Jadi kita handle di gdrive/download route dengan parameter thumbnail=true
+      const internalUrl = `/api/gdrive/download?id=${driveFileId}${isVideoThumbnail ? '&videoThumbnail=true' : isThumbnail ? '&thumbnail=true' : ''}`
       return NextResponse.json({ url: internalUrl })
     }
 
@@ -52,7 +54,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const url = await getDownloadUrl(r2Key, !!isThumbnail)
+    // Jika isVideoThumbnail, gunakan width/height yang lebih besar untuk thumbnail video
+    const thumbParams = isVideoThumbnail ? {
+      transform: {
+        width: 320,
+        height: 240,
+        resize: 'cover' as const,
+        quality: 70
+      }
+    } : isThumbnail ? {
+      transform: {
+        width: 320,
+        height: 240,
+        resize: 'cover' as const,
+        quality: 60
+      }
+    } : undefined
+
+    const url = await getDownloadUrl(r2Key, !!thumbParams)
     return NextResponse.json({ url })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

@@ -5,7 +5,8 @@ import { CATEGORY_EMOJI } from '@/lib/utils/category'
 import { formatFileSize, formatDate } from '@/lib/utils/format'
 import { useToast } from './Toast'
 
-type FileRow = { id: string; name: string; size: number; category: string; mime_type: string; created_at: string; is_starred: boolean; is_public?: boolean; r2_key?: string; drive_file_id?: string }
+type FileRow = { id: string; name: string; size: number; category: string; mime_type: string; created_at: string; is_starred: boolean; is_public?: boolean; r2_key?: string; drive_file_id?: string; thumbnail_key?: string; thumbnail_url?: string }
+
 
 // Cache memori untuk menyimpan signed URLs agar menghemat request (kedaluwarsa dalam 14 menit)
 type CacheEntry = { url: string; expiresAt: number }
@@ -84,6 +85,92 @@ function ImageCardPreview({ r2Key, driveFileId, name }: { r2Key?: string; driveF
     </div>
   )
 }
+
+function VideoCardPreview({ thumbnailKey, thumbnailUrl, driveFileId, name }: { thumbnailKey?: string; thumbnailUrl?: string; driveFileId?: string; name: string }) {
+  const [url, setUrl] = useState<string | null>(null)
+  const [isIntersecting, setIsIntersecting] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!thumbnailKey && !thumbnailUrl && !driveFileId) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsIntersecting(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '200px' }
+    )
+
+    if (containerRef.current) observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [thumbnailKey, thumbnailUrl, driveFileId])
+
+  useEffect(() => {
+    if ((!thumbnailKey && !thumbnailUrl && !driveFileId) || !isIntersecting) return
+
+    // Jika sudah ada thumbnail URL, langsung gunakan
+    if (thumbnailUrl) {
+      setUrl(thumbnailUrl)
+      return
+    }
+
+    const cacheKey = thumbnailKey || `video-${driveFileId}`
+    const now = Date.now()
+    const cached = signedUrlCache.get(cacheKey)
+
+    if (cached && cached.expiresAt > now + 120 * 1000) {
+      setUrl(cached.url)
+      return
+    }
+
+    fetch('/api/download-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ r2Key: thumbnailKey, driveFileId, isThumbnail: true, isVideoThumbnail: true }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.url) {
+          setUrl(data.url)
+          signedUrlCache.set(cacheKey, {
+            url: data.url,
+            expiresAt: Date.now() + 14 * 60 * 1000,
+          })
+        }
+      })
+      .catch(err => console.error(err))
+  }, [thumbnailKey, thumbnailUrl, driveFileId, isIntersecting])
+
+  if (!url) {
+    return (
+      <div ref={containerRef} className="w-full aspect-[4/3] bg-[var(--surface-2)] border-b border-[var(--border)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[var(--border-2)] border-t-[var(--text-1)] rounded-full animate-spinner-neon" />
+      </div>
+    )
+  }
+
+  return (
+    <div ref={containerRef} className="w-full aspect-[4/3] relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface-2)] group">
+      <img
+        src={url}
+        alt={name}
+        loading="lazy"
+        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+      />
+      {/* Play icon overlay */}
+      <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors duration-300">
+        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+          <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  )
+
 
 function FileCardPlaceholder({ category }: { category: string }) {
   const emoji = CATEGORY_EMOJI[category as keyof typeof CATEGORY_EMOJI] ?? '□'
@@ -171,6 +258,8 @@ export default function FileGrid({ files, onRefresh }: { files: FileRow[]; onRef
           <Link href={`/file/${f.id}`} className="block w-full">
             {f.category === 'photo' ? (
               <ImageCardPreview r2Key={f.r2_key} driveFileId={f.drive_file_id} name={f.name} />
+            ) : f.category === 'video' ? (
+              <VideoCardPreview thumbnailKey={f.thumbnail_key} thumbnailUrl={f.thumbnail_url} driveFileId={f.drive_file_id} name={f.name} />
             ) : (
               <FileCardPlaceholder category={f.category} />
             )}
