@@ -102,9 +102,9 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         activeXhrRef.current = xhr
-        xhr.open('PUT', '/api/gdrive/upload')
+        xhr.open('PUT', uploadUrl)
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
-        xhr.setRequestHeader('x-upload-url', uploadUrl)
+        // Removed x-upload-url header for direct upload
         
         // Content-Range: untuk file kosong, gunakan format khusus
         // Untuk file dengan konten, gunakan format standar
