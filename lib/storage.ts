@@ -4,12 +4,31 @@ export const BUCKET = 'personalvault'
 
 export async function getUploadUrl(key: string): Promise<string> {
   const supabase = await createClient()
+  
+  // Log detail untuk debugging
+  console.log('[Storage] Creating signed upload URL for key:', key)
+  console.log('[Storage] Bucket:', BUCKET)
+  
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUploadUrl(key)
   
   if (error) {
-    throw new Error(`Gagal membuat Signed Upload URL: ${error.message}`)
+    console.error('[Storage] Failed to create signed upload URL:', {
+      key,
+      bucket: BUCKET,
+      error: error.message,
+      statusCode: (error as any).statusCode,
+      hint: (error as any).hint,
+      details: (error as any).details
+    })
+    throw new Error(`Gagal membuat Signed Upload URL untuk "${key}": ${error.message}`)
   }
   
+  if (!data?.signedUrl) {
+    console.error('[Storage] No signedUrl returned from Supabase')
+    throw new Error('No signed URL returned from storage')
+  }
+  
+  console.log('[Storage] Successfully created signed upload URL')
   return data.signedUrl
 }
 

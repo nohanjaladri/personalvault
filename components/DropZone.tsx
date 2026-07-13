@@ -246,6 +246,9 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
             return
           }
           console.log(`[Upload] ✅ Video thumbnail complete for ${displayName}`)
+          
+          // Beritahu dashboard untuk refresh grid agar thumbnail baru muncul
+          window.dispatchEvent(new CustomEvent('refresh-files'))
         } catch (err) {
           console.error('[Upload] Failed to generate/upload video thumbnail:', err)
         }
