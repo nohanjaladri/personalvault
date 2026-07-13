@@ -1,6 +1,6 @@
 import { createClient } from './supabase/server'
 
-const BUCKET = 'personalvault'
+export const BUCKET = 'personalvault'
 
 export async function getUploadUrl(key: string): Promise<string> {
   const supabase = await createClient()
