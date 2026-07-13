@@ -5,14 +5,28 @@ import { CATEGORY_EMOJI } from '@/lib/utils/category'
 import { formatFileSize, formatDate } from '@/lib/utils/format'
 import { useToast } from './Toast'
 
-type FileRow = { id: string; name: string; size: number; category: string; mime_type: string; created_at: string; is_starred: boolean; is_public?: boolean; r2_key?: string; drive_file_id?: string; thumbnail_key?: string; thumbnail_url?: string }
+type FileRow = {
+  id: string
+  name: string
+  size: number
+  category: string
+  mime_type: string
+  created_at: string
+  is_starred: boolean
+  is_public?: boolean
+  r2_key?: string | null
+  drive_file_id?: string | null
+  thumbnail_key?: string | null
+  thumbnail_url?: string | null
+}
+
 
 
 // Cache memori untuk menyimpan signed URLs agar menghemat request (kedaluwarsa dalam 14 menit)
 type CacheEntry = { url: string; expiresAt: number }
 const signedUrlCache = new Map<string, CacheEntry>()
 
-function ImageCardPreview({ r2Key, driveFileId, name }: { r2Key?: string; driveFileId?: string; name: string }) {
+function ImageCardPreview({ r2Key, driveFileId, name }: { r2Key?: string | null; driveFileId?: string | null; name: string }) {
   const [url, setUrl] = useState<string | null>(null)
   const [isIntersecting, setIsIntersecting] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -86,7 +100,7 @@ function ImageCardPreview({ r2Key, driveFileId, name }: { r2Key?: string; driveF
   )
 }
 
-function VideoCardPreview({ thumbnailKey, thumbnailUrl, driveFileId, name }: { thumbnailKey?: string; thumbnailUrl?: string; driveFileId?: string; name: string }) {
+function VideoCardPreview({ thumbnailKey, thumbnailUrl, driveFileId, name }: { thumbnailKey?: string | null; thumbnailUrl?: string | null; driveFileId?: string | null; name: string }) {
   const [url, setUrl] = useState<string | null>(null)
   const [isIntersecting, setIsIntersecting] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
