@@ -195,32 +195,57 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
 
     // Jika video, generate & upload thumbnail background process
     if (file.type?.startsWith('video/')) {
+      console.log(`[Upload] Starting thumbnail generation for video: ${displayName}`)
       captureVideoThumbnail(file, 1.5).then(async (thumbBlob) => {
-        if (!thumbBlob) return
+        if (!thumbBlob) {
+          console.warn(`[Upload] No thumbnail blob generated for ${displayName}`)
+          return
+        }
+        
+        console.log(`[Upload] Thumbnail blob generated for ${displayName}, size: ${thumbBlob.size} bytes`)
         
         try {
+          console.log(`[Upload] Requesting thumbnail upload URL for file ID: ${savedFileMeta.id}`)
           const thumbRes = await fetch('/api/upload-thumbnail-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fileId: savedFileMeta.id, contentType: 'image/jpeg' })
           })
           
-          if (!thumbRes.ok) return
+          if (!thumbRes.ok) {
+            console.error(`[Upload] Failed to get thumbnail upload URL: ${thumbRes.status} ${thumbRes.statusText}`)
+            return
+          }
           const { uploadUrl, thumbnailKey } = await thumbRes.json()
+          console.log(`[Upload] Got thumbnail upload URL, key: ${thumbnailKey}`)
           
           // Upload thumbnail blob ke storage (R2/S3)
-          await fetch(uploadUrl, {
+          console.log(`[Upload] Uploading thumbnail to storage...`)
+          const uploadResponse = await fetch(uploadUrl, {
             method: 'PUT',
             headers: { 'Content-Type': 'image/jpeg' },
             body: thumbBlob
           })
           
+          if (!uploadResponse.ok) {
+            console.error(`[Upload] Thumbnail upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`)
+            return
+          }
+          console.log(`[Upload] Thumbnail uploaded successfully to storage`)
+          
           // Update database
-          await fetch('/api/files/update-thumbnail', {
+          console.log(`[Upload] Updating database with thumbnail key...`)
+          const dbUpdateRes = await fetch('/api/files/update-thumbnail', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fileId: savedFileMeta.id, thumbnailKey })
           })
+          
+          if (!dbUpdateRes.ok) {
+            console.error(`[Upload] Failed to update database with thumbnail: ${dbUpdateRes.status} ${dbUpdateRes.statusText}`)
+            return
+          }
+          console.log(`[Upload] ✅ Video thumbnail complete for ${displayName}`)
         } catch (err) {
           console.error('[Upload] Failed to generate/upload video thumbnail:', err)
         }
