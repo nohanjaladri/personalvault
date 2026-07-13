@@ -60,12 +60,13 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
   const [uploading, setUploading] = useState(false)
   const [currentUploadingFile, setCurrentUploadingFile] = useState<string | null>(null)
   const [currentFileProgress, setCurrentFileProgress] = useState(0)
+  const [uploadSpeed, setUploadSpeed] = useState<string>('')
   const { showToast } = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
   const activeXhrRef = useRef<XMLHttpRequest | null>(null)
 
-  const uploadFile = async (file: File, onProgress: (pct: number) => void) => {
+  const uploadFile = async (file: File, onProgress: (pct: number, speed: string) => void) => {
     const displayName = file.webkitRelativePath || file.name
     
     console.log('[Upload] Starting upload for:', displayName, {
@@ -80,6 +81,7 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
         fileName: displayName,
         contentType: file.type || 'application/octet-stream',
         size: file.size,
+        
       }),
     })
 
@@ -115,8 +117,15 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
           xhr.setRequestHeader('Content-Range', `bytes 0-${file.size - 1}/${file.size}`)
         }
 
+        const startTime = Date.now()
         xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100)
+            const elapsed = (Date.now() - startTime) / 1000
+            const speed = elapsed > 0 ? e.loaded / elapsed : 0
+            const speedStr = speed > 0 ? `${formatFileSize(speed)}/s` : ''
+            onProgress(pct, speedStr)
+          }
         }
         xhr.onload = () => {
           activeXhrRef.current = null
@@ -146,8 +155,15 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
         xhr.open('PUT', uploadUrl)
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
 
+        const startTime = Date.now()
         xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100)
+            const elapsed = (Date.now() - startTime) / 1000
+            const speed = elapsed > 0 ? e.loaded / elapsed : 0
+            const speedStr = speed > 0 ? `${formatFileSize(speed)}/s` : ''
+            onProgress(pct, speedStr)
+          }
         }
         xhr.onload = () => {
           activeXhrRef.current = null
@@ -228,7 +244,11 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
         const file = selectedFiles[i]
         setCurrentUploadingFile(file.webkitRelativePath || file.name)
         setCurrentFileProgress(0)
-        await uploadFile(file, (pct) => setCurrentFileProgress(pct))
+        setUploadSpeed('')
+        await uploadFile(file, (pct, speed) => {
+          setCurrentFileProgress(pct)
+          setUploadSpeed(speed)
+        })
         setProgress(Math.round(((i + 1) / selectedFiles.length) * 100))
       }
       showToast(`${selectedFiles.length} file berhasil diunggah ke Vault ✓`)
@@ -247,6 +267,7 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
       setProgress(0)
       setCurrentUploadingFile(null)
       setCurrentFileProgress(0)
+      setUploadSpeed('')
       activeXhrRef.current = null
     }
   }
@@ -470,6 +491,11 @@ export default function DropZone({ onUploadComplete }: { onUploadComplete: () =>
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">
+                      {uploadSpeed && (
+                        <span className="text-xs text-[var(--text-4)] tabular-nums">
+                          {uploadSpeed}
+                        </span>
+                      )}
                       <span className="text-xs font-semibold text-[var(--text-1)] tabular-nums">
                         {currentFileProgress}%
                       </span>
